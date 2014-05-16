@@ -1,0 +1,14 @@
+.idea
+todo.org
+.emacs.desktop
+.emacs.desktop.lock
+*~
+.project
+.pydevproject
+.settings/
+.nfs*
+.erlang.cookie
+.depsolver_plt
+.otp_plt
+nbproject/private/
+.fontconfig
