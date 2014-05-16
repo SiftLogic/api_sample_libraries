@@ -1,10 +1,11 @@
-FTP APIs
+SiftLogic FTP APIs
+==================
 
-Each implementation should be contained within a 'language' folder.
+Each implementation is contained within an evironment folder. Currently, there are 6 planned environments:
 
-dotnet/
-java/
-node/
-php/
-python/
-ruby/
+* dotnet
+* java
+* node
+* php
+* python
+* ruby
