@@ -4,11 +4,14 @@
   "description": "A simple node FTP server for connecting to our APIs",
   "main": "main.js",
   "scripts": {
-    "test": "./test.js"
+    "test": "mocha test.js"
   },
   "author": "Jacob Friesen",
   "license": "MIT",
   "devDependencies": {
-    "jsftp": "~1.3.0"
+    "jsftp": "~1.3.0",
+    "sinon": "~1.9.1",
+    "chai": "~1.9.1",
+    "proxyquire": "~1.0.0"
   }
 }

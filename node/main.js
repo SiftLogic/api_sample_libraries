@@ -1,34 +1,36 @@
 #!/bin/sh
 ':' //; exec "$(command -v nodejs || command -v node)" "$0" "$@"
 
-var JSFtp = require("jsftp");
+/**
+ * Demonstrates how the operations object can be used. Just:
+ * 1. Uploads a file
+ * 2. Downloads the results for that file once complete
+ **/
 
-var f = new JSFtp({
-  user:  'JacobsCompletelyMadKey',
-  pass: '0014ccac-4f6b-4272-909a-e43de09da679'
-});
-f.setDebugMode(true);
+var Operations = require('./operations');
 
-var retrieveOnceDone = function(savedFile) {
-  f.get('/complete/' + savedFile.replace('source_', 'archive_').replace('.csv', '.zip').replace('.txt', '.zip'), savedFile, function(err) {
-    if (err){ 
-      console.log(err);
-      process.exit();
-    };
+var FILE_NAME = '/opt/scalemail/apps/smapi/test/data-sample/sample_subscriber_data.csv',
+    DOWNLOAD_LOCATION = '/home/jacob/Desktop/';
 
-    console.log('Done the process');
-  });
-};
-
-f.on('jsftp_debug', function(eventType, data) {
-  if (eventType === 'response' && data && data.code === 226){
-    retrieveOnceDone(data.text.split('; ').slice(-1)[0]);
+var operations = new Operations('TestKey', 'e261742d-fe2f-4569-95e6-312689d04903', function(err, name) {
+  if (err) {
+    throw err;
   }
-});
 
-f.put('/opt/scalemail/apps/smapi/test/data-sample/sample_subscriber_data.csv', '/import_JacobsCompletelyMadKey_default_config/sample_subscriber_data.csv', function(err) {
-  if (err){ 
-    console.log(err);
-    process.exit();
-  };
+  console.log('Now downloading', name);
+  operations.download(DOWNLOAD_LOCATION + name, function(err, data) {
+    if (err) {
+      throw err;
+    }
+
+    console.log('Downloaded', name, 'into', DOWNLOAD_LOCATION);
+  });
+}).init();
+
+operations.upload(FILE_NAME, function(err) {
+  if (err) {
+    throw err;
+  }
+
+  console.log(FILE_NAME, 'was uploaded.')
 });
