@@ -18,12 +18,17 @@ var operations = new Operations('TestKey', 'e261742d-fe2f-4569-95e6-312689d04903
   }
 
   console.log('Now downloading', name);
-  operations.download(DOWNLOAD_LOCATION + name, function(err, data) {
+  operations.download(DOWNLOAD_LOCATION + name, function(err) {
     if (err) {
       throw err;
     }
 
     console.log('Downloaded', name, 'into', DOWNLOAD_LOCATION);
+    operations.quit(function(err){
+      if (err) {
+        throw err;
+      }
+    });
   });
 }).init();
 

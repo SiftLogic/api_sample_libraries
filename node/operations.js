@@ -84,5 +84,10 @@ module.exports = function(username, password, onProcessed) {
     self.ftp.get('/complete/' + filename.split('/').pop(), filename, callback);
   };
 
+  // Closes the ftp connection, should be done after each download.
+  self.quit = function(filename, callback) {
+    self.ftp.raw.quit(callback);
+  };
+
   return self;
 };

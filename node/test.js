@@ -217,4 +217,23 @@ describe('Operations', function() {
       expect(get.calledWith('/complete/test.zip', 'test/test.zip', callback)).to.be.true;
     });
   });
+
+  describe('quit', function() {
+    it('should call ftp raw\'s quit with the sent in callback', function() {
+      var quit = stub(),
+          callback = stub();
+
+      stub(operations, 'JSFtp').returns({
+        on: stub(),
+        raw: {
+          quit: quit
+        }
+      });
+
+      operations.quit(callback);
+
+      expect(quit.calledOnce).to.be.true;
+      expect(quit.calledWith(callback)).to.be.true;
+    });
+  })
 });
