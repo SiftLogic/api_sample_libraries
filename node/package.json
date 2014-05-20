@@ -1,6 +1,6 @@
 {
   "name": "node_ftp_example",
-  "version": "0.8.0",
+  "version": "0.8.5",
   "description": "A simple node FTP server for connecting to our APIs",
   "main": "main.js",
   "scripts": {

@@ -6,9 +6,10 @@
 var JSFtp = require('jsftp');
 
 // The constructor adds the username and password to the object. Also: 
+// polling: Poll every polling seconds. Defaults to 300 if falsey.
 // onProcessed: Called once the file is uploaded. Any errors while checking for upload or processing
 //              completion will be sent as the first argument.
-module.exports = function(username, password, onProcessed) {
+module.exports = function(username, password, polling, onProcessed) {
   var self = {
     username: username,
     password: password,
@@ -16,7 +17,7 @@ module.exports = function(username, password, onProcessed) {
     JSFtp: JSFtp,// Make testing what is sent to this possible
     ftp: null,
 
-    POLL_EVERY: 1000// 5 minutes in ms
+    POLL_EVERY: (polling || 300) * 1000// convert seconds to milliseconds
   };
 
   // Initializes JSFtp making it watch debug info until a file is successfully uploaded. If there is
@@ -34,8 +35,9 @@ module.exports = function(username, password, onProcessed) {
         if (data.code === 226){
           self.ftp.events = function(){};
 
+          console.log('Polling every', self.POLL_EVERY/60000, 'minutes:');
           self.watchUpload(data.text.split('; ').slice(-1)[0]);
-        // Not enough credits or mismatched columns
+        // A error with the file or backend specifically. e.g. Not enough credits
         } else if (data.code === 550){
           self.onProcessed(data.text);
         }

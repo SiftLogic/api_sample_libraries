@@ -18,16 +18,23 @@ describe('Operations', function() {
     password = 'e261742d-fe2f-4569-95e6-312689d04903';
     onProcessed = stub();
 
-    operations = new Operations(username, password, onProcessed);
+    operations = new Operations(username, password, null, onProcessed);
   });
 
-  it('should set the name, password, onProcessed and JSFtp from instantiation and the rest to null', function() {
+  it('should set the name, password, onProcessed and JSFtp from instantiation', function() {
     expect(operations.username).to.equal(username);
     expect(operations.password).to.equal(password);
     expect(operations.onProcessed).to.deep.equal(onProcessed);
     expect(operations.JSFtp).to.deep.equal(JSFtp);
 
     expect(operations.ftp).to.be.null;
+  });
+
+  it('should set POLL_EVERY to 300000 by default and the number of ms when custom', function() {
+    expect(operations.POLL_EVERY).to.equal(300000);
+    
+    operations = new Operations(username, password, 2, onProcessed);
+    expect(operations.POLL_EVERY).to.equal(2000);
   });
 
   describe('init', function() {
@@ -38,6 +45,12 @@ describe('Operations', function() {
       stub(operations, 'JSFtp').returns({on: on});
 
       main = operations.init();
+
+      stub(console, 'log');
+    });
+
+    afterEach(function() {
+      console.log.restore();
     });
 
     it('should return the main object', function() {
@@ -53,7 +66,8 @@ describe('Operations', function() {
       })).to.be.true;
     });
 
-    it('should watch jsftp_debug and call watchUpload only upon getting a file upload message', function() {
+    it('should watch jsftp_debug calling watchUpload only upon getting a file upload message',
+    function() {
       stub(operations, 'watchUpload');
 
       expect(on.calledOnce).to.be.true;
@@ -77,7 +91,20 @@ describe('Operations', function() {
       expect(operations.watchUpload.calledWith(file)).to.be.true;
     });
 
-    it('should call unprocessed with the error text when code 550', function() {
+    it('should also show a polling every', function() {
+      stub(operations, 'watchUpload');
+      operations.POLL_EVERY = 60000;
+
+      on.args[0][1]('response', {
+        code: 226,
+        text: ''
+      });
+
+      expect(console.log.calledOnce).to.be.true;
+      expect(console.log.calledWith('Polling every', 1, 'minutes:')).to.be.true;
+    });
+
+    it('should call unprocessed with the error text when the code 550', function() {
       var text = '550 Insufficient credits (Upload ID: 5c835271b08622f30a125a421c8da0bf)';
       on.args[0][1]('response', {
         code: 550,
@@ -90,7 +117,8 @@ describe('Operations', function() {
   });
 
   describe('toDownloadFormat', function() {
-    it('should do no reformatting when the file type is not .txt or .csv and there is no source_', function() {
+    it('should do no reformatting when the file type is not .txt or .csv and there is no source_',
+    function() {
       expect(operations.toDownloadFormat()).to.equal();
       expect(operations.toDownloadFormat('')).to.equal('');
       expect(operations.toDownloadFormat('test_test.doc')).to.equal('test_test.doc');
@@ -101,20 +129,23 @@ describe('Operations', function() {
     });
 
     it('should replace just the first source_ and just the last .csv with .zip', function() {
-      expect(operations.toDownloadFormat('source_source_test.csv.csv')).to.equal('archive_source_test.csv.zip');
+      expect(operations.toDownloadFormat('source_source_test.csv.csv')).to
+       .equal('archive_source_test.csv.zip');
     });
 
     it('should replace just the first source_ and just the last .txt with .zip', function() {
-      expect(operations.toDownloadFormat('source_source_test.txt.txt')).to.equal('archive_source_test.txt.zip');
+      expect(operations.toDownloadFormat('source_source_test.txt.txt')).to
+       .equal('archive_source_test.txt.zip');
     });
 
     it('should deal with a .csv followed by a .txt', function() {
-      expect(operations.toDownloadFormat('source_source_test.csv.txt')).to.equal('archive_source_test.csv.zip');
+      expect(operations.toDownloadFormat('source_source_test.csv.txt')).to
+       .equal('archive_source_test.csv.zip');
     });
   });
 
   describe('upload', function() {
-    it('should call ftp put with the file name and destination directory and set the callback', function() { 
+    it('should call ftp put with the file name and destination directory and callback', function() { 
       var put = stub(),
           filename = 'test.csv',
           callback = stub();
@@ -127,7 +158,8 @@ describe('Operations', function() {
       operations.init().upload(filename, callback);
 
       expect(put.calledOnce).to.be.true;
-      expect(put.calledWith(filename, '/import_' + operations.username + '_default_config/' + filename, callback)).to.be.true;
+      var serverLocation = '/import_' + operations.username + '_default_config/' + filename;
+      expect(put.calledWith(filename, serverLocation, callback)).to.be.true;
     });
   });
 
@@ -169,7 +201,8 @@ describe('Operations', function() {
       expect(list.calledWith('/complete')).to.be.true;
     });
 
-    it('should have a callback that prints that the data is formatted when the expected file is found and calls onProcessed', function() {
+    it('should have a callback that prints that the data is formatted when the expected file is' +
+       'found and calls onProcessed', function() {
       operations.watchUpload();
 
       list.args[0][1](false, 'test0.csv\n' + filename + 'test2.csv');
@@ -192,7 +225,8 @@ describe('Operations', function() {
       expect(onProcessed.calledWith(error)).to.be.true;
     });
 
-    it('should have a callback that prints a not found message a recalls watchUpload in some amount of time', function() {
+    it('should have a callback that prints a not found message and thenrecalls watchUpload in some'+
+       'amount of time', function() {
       var clock = sinon.useFakeTimers();
 
       operations.watchUpload(filename);
@@ -211,7 +245,7 @@ describe('Operations', function() {
   });
 
   describe('download', function() {
-    it('should call ftp get with the file name and destination directory and set the callback', function() { 
+    it('should call ftp get with the file name, destination directory and callback', function() { 
       var get = stub(),
           filename = 'test/test.csv',
           callback = stub();
