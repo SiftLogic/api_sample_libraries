@@ -77,6 +77,17 @@ describe('Operations', function() {
       expect(operations.watchUpload.calledOnce).to.be.true;
       expect(operations.watchUpload.calledWith(file)).to.be.true;
     });
+
+    it('should call unprocessed with the error text when code 550', function() {
+      var text = '550 Insufficient credits (Upload ID: 5c835271b08622f30a125a421c8da0bf)';
+      on.args[0][1]('response', {
+        code: 550,
+        text: text
+      });
+
+      expect(operations.onProcessed.calledOnce).to.be.true;
+      expect(operations.onProcessed.calledWith(text)).to.be.true;
+    });
   });
 
   describe('toDownloadFormat', function() {
@@ -229,6 +240,7 @@ describe('Operations', function() {
           quit: quit
         }
       });
+      operations.init();
 
       operations.quit(callback);
 

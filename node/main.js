@@ -24,7 +24,7 @@ var operations = new Operations('TestKey', 'e261742d-fe2f-4569-95e6-312689d04903
     }
 
     console.log('Downloaded', name, 'into', DOWNLOAD_LOCATION);
-    operations.quit(function(err){
+    operations.quit(function(err) {
       if (err) {
         throw err;
       }

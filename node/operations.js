@@ -1,11 +1,11 @@
 /**
- * Used by the main file to load and download files. This can be directly included to integrate into your own Node.js application.
+ * Used by the main file to load and download files. This can be directly required to integrate into your own Node.js application.
  **/
 
 var JSFtp = require('jsftp');
 
-// The constructor adds the username and password to the object. 
-// onProcessed: Called once the file is uploaded. Any errors while checking for upload completion will be sent as the first argument.
+// The constructor adds the username and password to the object. Also: 
+// onProcessed: Called once the file is uploaded. Any errors while checking for upload or processing completion will be sent as the first argument.
 module.exports = function(username, password, onProcessed) {
   var self = {
     username: username,
@@ -14,10 +14,10 @@ module.exports = function(username, password, onProcessed) {
     JSFtp: JSFtp,// Make testing what is sent to this possible
     ftp: null,
 
-    POLL_EVERY: 300000// 5 minutes in ms
+    POLL_EVERY: 1000// 5 minutes in ms
   };
 
-  // Initializes JSFtp making it watch debug info.
+  // Initializes JSFtp making it watch debug info until a file is successfully uploaded. If there is any errors calls onProccessed with error message.
   self.init = function() {
     self.ftp = new self.JSFtp({
       user:  self.username,
@@ -26,17 +26,23 @@ module.exports = function(username, password, onProcessed) {
     });
 
     self.ftp.on('jsftp_debug', function(eventType, data) {
-      if (eventType === 'response' && data && data.code === 226){
-        self.ftp.events = function(){};
+      if (eventType === 'response' && data){
+        // File was successfully uploaded
+        if (data.code === 226){
+          self.ftp.events = function(){};
 
-        self.watchUpload(data.text.split('; ').slice(-1)[0]);
+          self.watchUpload(data.text.split('; ').slice(-1)[0]);
+        // Not enough credits or permission denied
+        } else if (data.code === 550){
+          self.onProcessed(data.text);
+        }
       }
     });
 
     return self;
   };
 
-  // Takes a file name and transforms it to the download formatted version (zip)
+  // Takes a file name and transforms it to the download formatted version (zip).
   self.toDownloadFormat = function(filename) {
     if (!filename){
       return filename;
@@ -49,7 +55,7 @@ module.exports = function(username, password, onProcessed) {
 
   // Calls onProcessed once the given file has been loaded.
   self.watchUpload = function(name) {
-    // Stop the earlier jsftp_debug listener, it interferes with this libraries ftp listing operations.
+    // Stop the earlier jsftp_debug listener, it interferes with jsftp's libraries ftp listing operations.
     self.ftp.setDebugMode(false);
 
     self.ftp.list('/complete', function(err, res) {
@@ -85,7 +91,7 @@ module.exports = function(username, password, onProcessed) {
   };
 
   // Closes the ftp connection, should be done after each download.
-  self.quit = function(filename, callback) {
+  self.quit = function(callback) {
     self.ftp.raw.quit(callback);
   };
 
