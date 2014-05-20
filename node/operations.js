@@ -1,11 +1,13 @@
 /**
- * Used by the main file to load and download files. This can be directly required to integrate into your own Node.js application.
+ * Used by the main file to load and download files. This can be directly required to integrate into
+ * your own Node.js application.
  **/
 
 var JSFtp = require('jsftp');
 
 // The constructor adds the username and password to the object. Also: 
-// onProcessed: Called once the file is uploaded. Any errors while checking for upload or processing completion will be sent as the first argument.
+// onProcessed: Called once the file is uploaded. Any errors while checking for upload or processing
+//              completion will be sent as the first argument.
 module.exports = function(username, password, onProcessed) {
   var self = {
     username: username,
@@ -17,7 +19,8 @@ module.exports = function(username, password, onProcessed) {
     POLL_EVERY: 1000// 5 minutes in ms
   };
 
-  // Initializes JSFtp making it watch debug info until a file is successfully uploaded. If there is any errors calls onProccessed with error message.
+  // Initializes JSFtp making it watch debug info until a file is successfully uploaded. If there is
+  // any errors calls onProccessed with error message.
   self.init = function() {
     self.ftp = new self.JSFtp({
       user:  self.username,
@@ -32,7 +35,7 @@ module.exports = function(username, password, onProcessed) {
           self.ftp.events = function(){};
 
           self.watchUpload(data.text.split('; ').slice(-1)[0]);
-        // Not enough credits or permission denied
+        // Not enough credits or mismatched columns
         } else if (data.code === 550){
           self.onProcessed(data.text);
         }
@@ -53,9 +56,9 @@ module.exports = function(username, password, onProcessed) {
                    .replace(new RegExp('.txt$'), '.zip');
   };
 
-  // Calls onProcessed once the given file has been loaded.
+  // Calls onProcessed once the given file has been loaded or there is an error.
   self.watchUpload = function(name) {
-    // Stop the earlier jsftp_debug listener, it interferes with jsftp's libraries ftp listing operations.
+    // Stop the earlier jsftp_debug listener, it interferes with jsftp's libraries listing operation
     self.ftp.setDebugMode(false);
 
     self.ftp.list('/complete', function(err, res) {
@@ -78,19 +81,21 @@ module.exports = function(username, password, onProcessed) {
     });
   };
 
-  // Uploads the given file, include the full pathname if not in the current directory. Note, the callback is called once the file is uploaded, not
-  // after it has been processed. That is the onProcessed callback.
+  // Uploads the given file, include the full pathname if not in the current directory. Note, the 
+  // callback is called once the file is uploaded, not after it has been processed.
   self.upload = function(filename, callback) {
-    self.ftp.put(filename, '/import_' + self.username + '_default_config/' + filename.split('/').pop(), callback);
+    var serverLocation = '/import_' + self.username + '_default_config/' +filename.split('/').pop();
+    self.ftp.put(filename, serverLocation, callback);
   };
 
-  // Downloads the given file, include the full pathname if not in the current directory. Calls callback once download is complete.
+  // Downloads the given file, include the full pathname if not in the current directory. Calls the
+  // callback once download is complete.
   self.download = function(filename, callback) {
     var filename = self.toDownloadFormat(filename);
     self.ftp.get('/complete/' + filename.split('/').pop(), filename, callback);
   };
 
-  // Closes the ftp connection, should be done after each download.
+  // Closes the ftp connection, should be done after each download. Calls the callback on complete.
   self.quit = function(callback) {
     self.ftp.raw.quit(callback);
   };

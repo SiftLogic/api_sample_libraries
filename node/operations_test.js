@@ -1,13 +1,12 @@
 /**
- * Tests both main.js and operations.js as there are not that many things to test.
+ * Tests all functions in operations.js.
  * NOTE: mocha needs to be installed as global: npm install -g mocha
  **/
 
 var sinon = require('sinon'),
     stub = sinon.stub,
     chai = require('chai'),
-    expect = chai.expect,
-    proxyquire =  require('proxyquire');
+    expect = chai.expect;
 
 var Operations = require('./operations'),
     JSFtp = require('jsftp');

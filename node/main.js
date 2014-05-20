@@ -2,28 +2,39 @@
 ':' //; exec "$(command -v nodejs || command -v node)" "$0" "$@"
 
 /**
- * Demonstrates how the operations object can be used. Just:
- * 1. Uploads a file
- * 2. Downloads the results for that file once complete
+ * Demonstrates how the operations object can be used.
+ * 1. Uploads the specified file.
+ * 2. Polls the server until the results are complete.
+ * 3. Downloads the results to the specified location.
  **/
+var argv = require('yargs')
+  .usage('Usage: $0 -f [file name] -l [download location] -k [key] -p [password]')
+  .example('$0 -f /tmp/test.csv -l /tmp -k TestKey -p e261742d-fe2f-4569-95e6-312689d04903', 
+           'Upload test.csv, process it and download the results to /tmp')
+  .demand(['f', 'l', 'k', 'p'])
+  .describe({
+    f: 'The absolute file path of the upload file',
+    l: 'The absolute location of where the results file should be placed',
+    k: 'The key name defined in the manage api keys section',
+    p: 'The password defined in the manage api keys section'
+  })
+  .argv;
 
 var Operations = require('./operations');
 
-var FILE_NAME = '/opt/scalemail/apps/smapi/test/data-sample/sample_subscriber_data.csv',
-    DOWNLOAD_LOCATION = '/home/jacob/Desktop/';
-
-var operations = new Operations('TestKey', 'e261742d-fe2f-4569-95e6-312689d04903', function(err, name) {
+// Once uploaded download the results and quit once done
+var operations = new Operations(argv.k, argv.p, function(err, name) {
   if (err) {
     throw err;
   }
 
   console.log('Now downloading', name);
-  operations.download(DOWNLOAD_LOCATION + name, function(err) {
+  operations.download(argv.l + name, function(err) {
     if (err) {
       throw err;
     }
 
-    console.log('Downloaded', name, 'into', DOWNLOAD_LOCATION);
+    console.log('Downloaded', name, 'into', argv.l);
     operations.quit(function(err) {
       if (err) {
         throw err;
@@ -32,10 +43,10 @@ var operations = new Operations('TestKey', 'e261742d-fe2f-4569-95e6-312689d04903
   });
 }).init();
 
-operations.upload(FILE_NAME, function(err) {
+operations.upload(argv.f, function(err) {
   if (err) {
     throw err;
   }
 
-  console.log(FILE_NAME, 'was uploaded.')
+  console.log(argv.f, 'was uploaded.');
 });
