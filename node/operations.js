@@ -58,28 +58,44 @@ module.exports = function(username, password, polling, onProcessed) {
                    .replace(new RegExp('.txt$'), '.zip');
   };
 
-  // Calls onProcessed once the given file has been loaded or there is an error.
+  // Calls onProcessed once the given file has been loaded or there is an error. Reconnects for
+  // every request to deal with the lost connections. Reconnects if a socket connection is lost.
   self.watchUpload = function(name) {
     // Stop the earlier jsftp_debug listener, it interferes with jsftp's libraries listing operation
     self.ftp.setDebugMode(false);
 
-    self.ftp.list('/complete', function(err, res) {
-      if (err){
-         self.onProcessed(err);
-      }
+    if (self.ftp.socket.writable){
+      self.ftp.list('/complete', function(err, res) {
+        if (err){
+          self.onProcessed(err);
+        }
 
-      var formatted = self.toDownloadFormat(name);
-      if (res && res.indexOf(formatted) > -1){
-        console.log(formatted, 'found.');
+        var formatted = self.toDownloadFormat(name);
+        if (res && res.indexOf(formatted) > -1){
+          console.log(formatted, 'found.');
 
-        self.onProcessed(false, formatted);
-      } else {
-        console.log('Waiting for results file', formatted, '...');
+          self.onProcessed(false, formatted);
+        } else {
+          console.log('Waiting for results file', formatted, '...');
 
-        setTimeout(function() {
-          self.watchUpload(name);
-        }, self.POLL_EVERY);
-      }
+          setTimeout(function() {
+            self.reConnect();
+            self.watchUpload(name);
+          }, self.POLL_EVERY);
+        }
+      });
+    } else {
+      self.reConnect();
+    }
+  };
+
+  // Recreates a connection.
+  self.reConnect = function() {
+    self.ftp.destroy();
+
+    self.ftp = new self.JSFtp({
+      user:  self.username,
+      pass: self.password
     });
   };
 

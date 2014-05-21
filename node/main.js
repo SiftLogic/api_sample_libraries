@@ -10,8 +10,8 @@
  **/
 var argv = require('yargs')
   .usage('Usage: $0 -f [file name] -l [download location] -k [key] -p [password]')
-  .example('$0 -f /tmp/test.csv -l /tmp -k TestKey -p e261742d-fe2f-4569-95e6-312689d04903', 
-           'Upload test.csv, process it and download the results to /tmp')
+  .example('$0 -f /tmp/test.csv -l /tmp -k TestKey -p e261742d-fe2f-4569-95e6-312689d049 --poll 10', 
+           'Upload test.csv, process it and download the results to /tmp, poll every 10s')
   .demand(['f', 'l', 'k', 'p'])
   .describe({
     f: 'The absolute file path of the upload file',
