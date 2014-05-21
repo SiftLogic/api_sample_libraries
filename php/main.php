@@ -3,6 +3,7 @@
 error_reporting(-1);
 
 require_once 'vendor/autoload.php';
+require_once 'Operations.php';
 
 // Define CLI options
 $cmd = new Commando\Command();
@@ -32,9 +33,6 @@ $cmd->setHelp("" .
 
 // Do not run any code while in help mode.
 if (!empty($cmd['f'])){
-  // This is a comment
-  echo "hello php version\n";
-
-  echo "done\n";
+  $operations = new Operations($cmd['k']);
 }
 ?>
