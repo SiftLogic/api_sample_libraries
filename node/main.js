@@ -18,14 +18,22 @@ var argv = require('yargs')
     l: 'The absolute location of where the results file should be placed',
     k: 'The key name defined in the manage api keys section',
     p: 'The password defined in the manage api keys section',
-    poll: 'The number of seconds to poll for'
+    poll: 'The number of seconds to poll for (default 300)',
+    host: 'The host to connect to (default localhost)',
+    port: 'The port to connect to (default 21)'
   })
   .argv;
 
 var Operations = require('./operations');
 
 // Once uploaded download the results and quit once done.
-var operations = new Operations(argv.k, argv.p, argv.poll, function(err, name) {
+var operations = new Operations({
+    username: argv.k,
+    password: argv.p,
+    polling: argv.poll,
+    host: argv.host,
+    port: argv.port,
+  }, function(err, name) {
   if (err) {
     throw err;
   }

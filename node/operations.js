@@ -5,25 +5,33 @@
 
 var JSFtp = require('jsftp');
 
-// The constructor adds the username and password to the object. Also: 
-// polling: Poll every polling seconds. Defaults to 300 if falsey.
+// The constructor adds opts to the object which are used in init.
+// opts.username: The username to get into the ftp server
+// opts.password: The password to get into the ftp server
+// opts.polling: Poll every polling seconds. Defaults to 300 if falsey.
+// opts.host: The port to connect to. Defaults to localhost if falsey.
+// opts.port: The port to connect to. Defaults to 21 if falsey.
 // onProcessed: Called once the file is uploaded. Any errors while checking for upload or processing
-//              completion will be sent as the first argument.
-module.exports = function(username, password, polling, onProcessed) {
+//              completion will be sent as the first argument. If falsey, it is an empty function.
+module.exports = function(opts, onProcessed) {
   var self = {
-    username: username,
-    password: password,
-    onProcessed: onProcessed,
+    username: opts.username,
+    password: opts.password,
+    host: opts.host || 'localhost',
+    port: opts.port || 21,
+    onProcessed: onProcessed || function() {},
     JSFtp: JSFtp,// Make testing what is sent to this possible
     ftp: null,
 
-    POLL_EVERY: (polling || 300) * 1000// convert seconds to milliseconds
+    POLL_EVERY: (opts.polling || 300) * 1000// convert seconds to milliseconds
   };
 
   // Initializes JSFtp making it watch debug info until a file is successfully uploaded. If there is
   // any errors calls onProccessed with error message.
   self.init = function() {
     self.ftp = new self.JSFtp({
+      host: self.host,
+      port: self.port,
       user:  self.username,
       pass: self.password,
       debugMode: true
@@ -47,7 +55,7 @@ module.exports = function(username, password, polling, onProcessed) {
     return self;
   };
 
-  // Takes a file name and transforms it to the download formatted version (zip).
+  // Takes a file name and transforms it to the results formatted version (zip).
   self.toDownloadFormat = function(filename) {
     if (!filename){
       return filename;
@@ -94,6 +102,8 @@ module.exports = function(username, password, polling, onProcessed) {
     self.ftp.destroy();
 
     self.ftp = new self.JSFtp({
+      host: self.host,
+      port: self.port,
       user:  self.username,
       pass: self.password
     });

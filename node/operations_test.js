@@ -12,13 +12,19 @@ var Operations = require('./operations'),
     JSFtp = require('jsftp');
 
 describe('Operations', function() {
-  var operations, username, password, onProcessed, operationsFromInit;
+  var operations, username, password, port, host, onProcessed, operationsFromInit;
   beforeEach(function() {
     username = 'TestKey';
     password = 'e261742d-fe2f-4569-95e6-312689d04903';
+    port = 9871;
+    host = 'localhost';
+
     onProcessed = stub();
 
-    operations = new Operations(username, password, null, onProcessed);
+    operations = new Operations({
+      username: username,
+      password: password
+    }, onProcessed);
 
     stub(operations, 'JSFtp').returns({
       on: stub(),
@@ -46,19 +52,39 @@ describe('Operations', function() {
     expect(_stub.calledWith.apply(_stub, args)).to.be.true;
   };
 
-  it('should set the username, password, onProcessed and JSFtp from instantiation', function() {
-    operations = new Operations(username, password, null, onProcessed);
+  it('should set the options, onProcessed, JSFtp from instantiation', function() {
+    operations = new Operations({
+      username: username,
+      password: password
+    }, onProcessed);
 
     expect(operations.username).to.equal(username);
     expect(operations.password).to.equal(password);
+    expect(operations.port).to.equal(21);
+    expect(operations.host).to.equal('localhost');
     expect(operations.onProcessed).to.deep.equal(onProcessed);
     expect(operations.JSFtp).to.deep.equal(JSFtp);
+  });
+
+  it('should set a custom host and port when specified', function() {
+    operations = new Operations({
+      port: port,
+      host: host
+    });
+
+    expect(operations.port).to.equal(port);
+    expect(operations.host).to.equal(host);
   });
 
   it('should set POLL_EVERY to 300000 by default and the number of ms when custom', function() {
     expect(operations.POLL_EVERY).to.equal(300000);
     
-    operations = new Operations(username, password, 2, onProcessed);
+    operations = new Operations({
+      username: username,
+      password: password,
+      polling: 2
+    }, onProcessed);
+
     expect(operations.POLL_EVERY).to.equal(2000);
   });
 
@@ -75,8 +101,10 @@ describe('Operations', function() {
       expect(operationsFromInit).to.deep.equal(operations);
     });
 
-    it('should set the username, password and set debugMode to true', function() {
+    it('should set the opts and set debugMode to true', function() {
       calledOnceWith(operations.JSFtp, {
+        host: operations.host,
+        port: operations.port,
         user: operations.username,
         pass: operations.password,
         debugMode: true
@@ -258,6 +286,8 @@ describe('Operations', function() {
 
       expect(operations.JSFtp.calledTwice).to.be.true;
       expect(operations.JSFtp.calledWith({
+        host: operations.host,
+        port: operations.port,
         user: operations.username,
         pass: operations.password
       })).to.be.true;
