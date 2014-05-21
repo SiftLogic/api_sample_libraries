@@ -14,6 +14,8 @@ var JSFtp = require('jsftp');
 // onProcessed: Called once the file is uploaded. Any errors while checking for upload or processing
 //              completion will be sent as the first argument. If falsey, it is an empty function.
 module.exports = function(opts, onProcessed) {
+  'use strict';
+  
   var self = {
     username: opts.username,
     password: opts.password,

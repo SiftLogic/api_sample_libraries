@@ -1,6 +1,8 @@
 #!/bin/sh
 ':' //; exec "$(command -v nodejs || command -v node)" "$0" "$@"
 
+'use strict';
+
 /**
  * Demonstrates how the operations object can be used. It is better to require the operation.js file
  * your code directly for increased flexibility.
