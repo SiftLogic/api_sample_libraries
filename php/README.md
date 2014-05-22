@@ -2,7 +2,7 @@ PHP FTP APIs
 ============
 For how the main file works: <code>./main.php --help</code\>
 
-**To Test: **php phpunit.phar --strict OperationsTest.php
+**To Test: **phpunit --strict OperationsTest.php
 
 Installation
 ============
