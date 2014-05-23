@@ -13,7 +13,7 @@ It is recommended to require the Operations file and use the methods in there to
 
 Installation
 ============
-Make sure PHP \>5 is installed, then: 
+Make sure PHP \>= 5.0 is installed, then: 
 <pre>
   <code>
     php composer.phar install
