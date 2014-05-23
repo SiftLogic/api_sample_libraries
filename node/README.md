@@ -1,11 +1,10 @@
 Node API Sample
 ===============
-
 This demonstrates how to connect to the ftp server with Node.js. You will need to know your apikey and password which can be found in the UI: API Keys -\> Manage -\> Actions -\> Access Details. Once you
 have that you can try the main.js file for an upload demo. For example:
 <pre>
   <code>
-    ./main.js -f /tmp/test.csv -l /tmp -k TestKey -p e261742d-fe2f-4569-95e6-312689d049 --poll 10
+    ./main.js -f /tmp/test.csv -l /tmp -k TestKey -p e261742d-fe2f-4569-95e6-312689d04903 --poll 10
   </code>
 </pre>
 The CLI is described in more detail with <code>./main.js</code>
@@ -21,7 +20,7 @@ Make sure Node.js \>0.8 is installed as well as [NPM](https://www.npmjs.org/), t
   </code>
 </pre>
 
-If you want to run the tests (run with npm test):
+If you want to run the tests (<code>npm test</code>):
 
 <pre>
   <code>

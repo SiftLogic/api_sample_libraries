@@ -1,15 +1,30 @@
 PHP FTP APIs
 ============
-For how the main file works: <code>./main.php --help</code\>
+This demonstrates how to connect to the ftp server with PHP. You will need to know your apikey and password which can be found in the UI: API Keys -\> Manage -\> Actions -\> Access Details. Once you
+have that you can try the main.php file for an upload demo. For example:
+<pre>
+  <code>
+    ./main.php -f /tmp/test.csv -l /tmp -k TestKey -p e261742d-fe2f-4569-95e6-312689d04903 --poll 10
+  </code>
+</pre>
+The CLI is described in more detail with <code>./main.php --help</code>
 
-**To Test: **phpunit --strict OperationsTest.php
+It is recommended to require the Operations file and use the methods in there to customize your process. The methods are described in file. If you want to cut down on code, this file only requires the files in patched_pemftp.
 
 Installation
 ============
-All dependencies are installed via composer:
+Make sure PHP \>5 is installed, then: 
 <pre>
   <code>
     php composer.phar install
+  </code>
+</pre>
+
+If you want to run the tests (<code>phpunit --strict OperationsTest.php</code>):
+
+<pre>
+  <code>
+    sudo apt-get install phpunit# Substitute apt-get for your systems package manager
   </code>
 </pre>
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 /**
- * Demonstrates how the operations object can be used. It is better to require the operation.js file
+ * Demonstrates how the Operations class can be used. It is better to require the Operations.php file
  * your code directly for increased flexibility.
  * 1. Uploads the specified file.
  * 2. Polls the server until the results are complete.
