@@ -162,7 +162,26 @@ class OperationsTest extends PHPUnit_Framework_TestCase
 
   // upload
 
-  public function testUploadFileUploadError() 
+  public function testUploadFileUploadErrorWithMultiFile() 
+  {
+    $file = 'test.csv';
+    $dir = "import_{$this->username}_splitfile_config";
+
+    $stub = $this->stubObjectWithOnce('Ftp', array(
+      "put" => FALSE,
+      "last_message" => 'An Error'
+    ));
+
+    $stub->expects($this->once())
+         ->method('put')
+         ->with($file, "$dir/$file");
+    $this->operations = new Operations($stub, $this->username, $this->password);
+
+    $message = "\nFile upload error: An Error\n";
+    $this->assertEquals($this->operations->upload($file), array(FALSE, $message));
+  }
+
+  public function testUploadFileUploadErrorWithSingleFile() 
   {
     $file = 'test.csv';
     $dir = "import_{$this->username}_default_config";
@@ -178,7 +197,7 @@ class OperationsTest extends PHPUnit_Framework_TestCase
     $this->operations = new Operations($stub, $this->username, $this->password);
 
     $message = "\nFile upload error: An Error\n";
-    $this->assertEquals($this->operations->upload($file), array(FALSE, $message));
+    $this->assertEquals($this->operations->upload($file, TRUE), array(FALSE, $message));
   }
 
   public function testUploadFileNameExtractionError() 

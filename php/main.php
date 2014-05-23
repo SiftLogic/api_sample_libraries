@@ -3,7 +3,7 @@
 /**
  * Demonstrates how the Operations class can be used. It is better to require the Operations.php file
  * your code directly for increased flexibility.
- * 1. Uploads the specified file.
+ * 1. Uploads the specified file as a multiline type (unless otherwise specified).
  * 2. Polls the server until the results are complete.
  * 3. Downloads the results to the specified location.
  */
@@ -37,7 +37,9 @@ $argv->setHelp("" .
 ->option('host')
     ->describedAs('The host to connect to (default localhost)')
 ->option('port')
-    ->describedAs('The port to connect to (default 21)');
+    ->describedAs('The port to connect to (default 21)')
+->option('singleFile')
+    ->describedAs('whether to run in single file mode (defaults to false)');
 
 // Do not run any code while in help mode
 if (!empty($argv['k'])){
@@ -46,7 +48,7 @@ if (!empty($argv['k'])){
   $operations->init();
 
   // Upload the file.
-  $message = $operations->upload($argv['f']);
+  $message = $operations->upload($argv['f'], $argv['singleFile']);
   if (!$message[0]){
     throw new RuntimeException($message[1]);
   }

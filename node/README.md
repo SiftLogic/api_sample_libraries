@@ -13,7 +13,7 @@ It is recommended to require the operations file and use the functions in there 
 
 Installation
 ============
-Make sure Node.js \>= 0.8.2 is installed as well as [NPM](https://www.npmjs.org/), then: 
+Make sure Node.js \>= 0.9.12 is installed as well as [NPM](https://www.npmjs.org/), then: 
 <pre>
   <code>
     npm install

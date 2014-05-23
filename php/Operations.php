@@ -87,16 +87,17 @@ class Operations
    * Changes to the upload directory then uploads the specified file.
    *
    * @param (file) The location of the file to upload.
+   * @param (singleFile) If the file is uploaded in single file mode. Defaults to FALSE.
    *
    * @return An array of the format [<upload succeeded>, <message>].
    */
-  public function upload($file)
+  public function upload($file, $singleFile = FALSE)
   {
-    $dir = "import_{$this->username}_default_config";
+    $type = $singleFile ? 'default' : 'splitfile';
+    $dir = "import_{$this->username}_{$type}_config";
 
     $formatted = explode('/', trim($file));
     $formatted = end($formatted);
-
 
     if($this->ftp->put($formatted, "$dir/$formatted")) {
       $response_message = $this->ftp->last_message();
