@@ -41,7 +41,7 @@ $argv->setHelp("" .
 
 // Do not run any code while in help mode
 if (!empty($argv['k'])){
-  $operations = new Operations(new Ftp(TRUE), $argv['k'], $argv['p'], 
+  $operations = new Operations(new Ftp(FALSE), $argv['k'], $argv['p'], 
                                $argv['host'], $argv['port'], $argv['poll']);
   $operations->init();
 
@@ -58,5 +58,8 @@ if (!empty($argv['k'])){
     throw new RuntimeException($message[1]);
   }
   echo($message[1]);
+
+  // Always close the FTP connection properly once done with it.
+  $operations->quit();
 }
 ?>

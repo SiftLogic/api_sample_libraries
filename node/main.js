@@ -39,14 +39,15 @@ var operations = new Operations({
   if (err) {
     throw err;
   }
-
   console.log('Now downloading', name);
+  
   operations.download(argv.l + name, function(err) {
     if (err) {
       throw err;
     }
-
     console.log('Downloaded', name, 'into', argv.l);
+
+    // Always close the FTP connection properly once done with it.
     operations.quit(function(err) {
       if (err) {
         throw err;

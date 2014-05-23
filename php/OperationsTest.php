@@ -168,27 +168,22 @@ class OperationsTest extends PHPUnit_Framework_TestCase
     $dir = "import_{$this->username}_default_config";
 
     $stub = $this->stubObjectWithOnce('Ftp', array(
-      "chdir" => TRUE,
       "put" => FALSE,
       "last_message" => 'An Error'
     ));
 
     $stub->expects($this->once())
-         ->method('chdir')
-         ->with($dir);
-    $stub->expects($this->once())
          ->method('put')
-         ->with($file, $dir .'/'. $file);
+         ->with($file, "$dir/$file");
     $this->operations = new Operations($stub, $this->username, $this->password);
 
-    $message = "\nFile upload error: an error\n";
+    $message = "\nFile upload error: An Error\n";
     $this->assertEquals($this->operations->upload($file), array(FALSE, $message));
   }
 
   public function testUploadFileNameExtractionError() 
   {
     $stub = $this->stubObjectWithOnce('Ftp', array(
-      "chdir" => TRUE,
       "put" => TRUE,
       "last_message" => 'source_test_data_20140523_0012.csv'
     ));
@@ -200,6 +195,8 @@ class OperationsTest extends PHPUnit_Framework_TestCase
 
   public function testUploadSuccess() 
   {
+    $file = '/tmp/test.csv';
+
     $lastMessage = array(
       '226 closing data connection;',
       'File upload success;',
@@ -207,7 +204,6 @@ class OperationsTest extends PHPUnit_Framework_TestCase
     );
 
     $stub = $this->stubObjectWithOnce('Ftp', array(
-      "chdir" => TRUE,
       "put" => TRUE,
       "last_message" => implode(' ', $lastMessage)
     ));
@@ -271,5 +267,63 @@ class OperationsTest extends PHPUnit_Framework_TestCase
 
     $this->assertEquals($operationsStub->download('', $operationsStub), array(FALSE, 'An error'));
   }
+
+  public function testDownloadFileCompleteNoDownloadError()
+  {
+    $formatted = $this->operations->getDownloadFileName();
+    $location = '/tmp';
+
+    $stub = $this->stubObjectWithOnce('Ftp', array(
+      "nlist" => array(
+        'not here',
+        'or here',
+        $formatted,
+        'or or here'
+      ),
+      "get" => FALSE,
+      "last_message" => 'An Error'
+    ));
+    $stub->expects($this->once())
+         ->method('get')
+         ->with("/complete/$formatted", "$location/$formatted");
+
+    $this->operations = new Operations($stub, $this->username, $this->password);
+
+    $message = "\nFile download error: An Error\n";
+    $this->assertEquals($this->operations->download($location), array(FALSE, $message));
+  }
+
+  public function testDownloadFileCompleteAndDownload()
+  {
+    $formatted = $this->operations->getDownloadFileName();
+    $location = '/tmp';
+
+    $stub = $this->stubObjectWithOnce('Ftp', array(
+      "nlist" => array(
+        'not here',
+        'or here',
+        $formatted,
+        'or or here'
+      ),
+      "get" => TRUE
+    ));
+
+    $this->operations = new Operations($stub, $this->username, $this->password);
+
+    $message = "$formatted downloaded to $location.\n";
+    $this->assertEquals($this->operations->download($location), array(TRUE, $message));
+  }
+
+  // quit
+
+  public function testQuit()
+  {
+    $stub = $this->stubObjectWithOnce('Ftp', array(
+      "quit" => TRUE
+    ));
+    $this->operations = new Operations($stub, $this->username, $this->password);
+
+    $this->operations->quit();
+  } 
 }
 ?>

@@ -86,7 +86,7 @@ class Operations
   /**
    * Changes to the upload directory then uploads the specified file.
    *
-   * @param (file) The absolute location of the file to upload.
+   * @param (file) The location of the file to upload.
    *
    * @return An array of the format [<upload succeeded>, <message>].
    */
@@ -94,18 +94,18 @@ class Operations
   {
     $dir = "import_{$this->username}_default_config";
 
-    $this->ftp->chdir($dir);
-    if($this->ftp->put($file, $dir .'/'. $file)) {
+    $formatted = end(split('/', trim($file)));
+    if($this->ftp->put($formatted, "$dir/$formatted")) {
       $response_message = $this->ftp->last_message();
       if (preg_match("/.* (.*)$/", $response_message, $parsed)) {
         $this->uploadedFileName = trim($parsed[1]);
 
-        return array(TRUE, "$file has been uploaded as {$parsed[1]}\n");
+        return array(TRUE, "$formatted has been uploaded as {$parsed[1]}\n");
       } else {
         return array(FALSE, "Failed to extract filename from: $response_message\n");
       }
     } else {
-      $message = strtolower($this->ftp->last_message());
+      $message = $this->ftp->last_message();
       return array(FALSE, "\nFile upload error: $message\n");
     }
   }
@@ -129,9 +129,16 @@ class Operations
       return array(FALSE, "The /complete directory does not exist.\n");
     }
 
+    $location = preg_replace('/\/$/', '', $location);// Remove trailing slash if present
+
     $formatted = $self->getDownloadFileName();
     if (array_search($formatted, $listing)){
-      return array(TRUE, "$formatted found.\n");
+      if(!$self->ftp->get("/complete/$formatted", "$location/$formatted")){
+        $message = $self->ftp->last_message();
+        return array(FALSE, "\nFile download error: $message\n");
+      };
+
+      return array(TRUE, "$formatted downloaded to $location.\n");
     } else {
       return $self->waitAndDownload($self->pollEvery, $formatted, $location);
     }
@@ -151,11 +158,21 @@ class Operations
     sleep($time);
 
     // We could have been kicked off due to inactivity...
+    $this->ftp->quit();
     if (!$this->init()){
       return array(FALSE, "Could not reconnect to the server.\n");
     }
 
     return $this->download($location);
+  }
+
+  /**
+   * Closes the FTP connection properly. This should always be called at the end of a program using
+   * this class.
+   */
+  public function quit()
+  {
+    $this->ftp->quit();
   }
 
   /**
