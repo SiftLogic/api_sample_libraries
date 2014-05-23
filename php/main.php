@@ -1,9 +1,17 @@
 #!/usr/bin/env php
 <?php
+/**
+ * Demonstrates how the operations object can be used. It is better to require the operation.js file
+ * your code directly for increased flexibility.
+ * 1. Uploads the specified file.
+ * 2. Polls the server until the results are complete.
+ * 3. Downloads the results to the specified location.
+ */
 error_reporting(-1);
 
 require_once 'vendor/autoload.php';
 require_once 'Operations.php';
+require_once 'patched_pemftp/ftp_class.php';
 
 // Define CLI options
 $cmd = new Commando\Command();
@@ -31,8 +39,9 @@ $cmd->setHelp("" .
 ->option('port')
     ->describedAs('The port to connect to (default 21)');
 
-// Do not run any code while in help mode.
-if (!empty($cmd['f'])){
-  $operations = new Operations($cmd['k']);
+// Do not run any code while in help mode
+if (!empty($cmd['k'])){
+  $operations = new Operations(new Ftp(TRUE), $cmd['k'], $cmd['p'], $cmd['host'], $cmd['port']);
+  $operations->init();
 }
 ?>
