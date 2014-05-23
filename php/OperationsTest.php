@@ -18,7 +18,6 @@ class OperationsTest extends PHPUnit_Framework_TestCase
     $this->port = 'localhost';
     $this->ftp = new Ftp(FALSE);
 
-
     $this->operations = new Operations($this->ftp, $this->username, $this->password, $this->host, 
                                        $this->port);
   }
@@ -62,7 +61,7 @@ class OperationsTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($details['port'], 21);
   }
 
-  public function testSetServerError() {
+  public function testInitSetServerError() {
     $this->setExpectedException('RuntimeException');
 
     $this->operations = new Operations($this->stubObjectWithOnce('Ftp', array(
@@ -73,7 +72,7 @@ class OperationsTest extends PHPUnit_Framework_TestCase
     $this->operations->init();
   }
 
-  public function testConnectError() {
+  public function testInitConnectError() {
     $this->setExpectedException('RuntimeException');
 
     $this->operations = new Operations($this->stubObjectWithOnce('Ftp', array(
@@ -85,7 +84,7 @@ class OperationsTest extends PHPUnit_Framework_TestCase
     $this->operations->init();
   }
 
-  public function testLoginError() {
+  public function testInitLoginError() {
     $this->setExpectedException('RuntimeException');
 
     $this->operations = new Operations($this->stubObjectWithOnce('Ftp', array(
@@ -98,7 +97,7 @@ class OperationsTest extends PHPUnit_Framework_TestCase
     $this->operations->init();
   }
 
-  public function testSetTypeError() {
+  public function testInitSetTypeError() {
     $this->setExpectedException('RuntimeException');
 
     $this->operations = new Operations($this->stubObjectWithOnce('Ftp', array(
@@ -112,7 +111,7 @@ class OperationsTest extends PHPUnit_Framework_TestCase
     $this->operations->init();
   }
 
-  public function testPassiveError() {
+  public function testInitPassiveError() {
     $this->setExpectedException('RuntimeException');
 
     $this->operations = new Operations($this->stubObjectWithOnce('Ftp', array(
@@ -153,6 +152,61 @@ class OperationsTest extends PHPUnit_Framework_TestCase
                                        $this->port);
 
     $this->assertEquals($this->operations->init(), TRUE);
+  }
+
+  public function testUploadFileUploadError() 
+  {
+    $file = 'test.csv';
+    $dir = "import_{$this->username}_default_config";
+
+    $stub = $this->stubObjectWithOnce('Ftp', array(
+      "chdir" => TRUE,
+      "put" => FALSE,
+      "last_message" => 'An Error'
+    ));
+
+    $stub->expects($this->once())
+         ->method('chdir')
+         ->with($dir);
+    $stub->expects($this->once())
+         ->method('put')
+         ->with($file, $dir .'/'. $file);
+    $this->operations = new Operations($stub, $this->username, $this->password);
+
+    $message = "\nFile upload error: an error\n";
+    $this->assertEquals($this->operations->upload($file), array(FALSE, $message));
+  }
+
+  public function testUploadFileNameExtractionError() 
+  {
+    $stub = $this->stubObjectWithOnce('Ftp', array(
+      "chdir" => TRUE,
+      "put" => TRUE,
+      "last_message" => 'source_test_data_20140523_0012.csv'
+    ));
+    $this->operations = new Operations($stub, $this->username, $this->password);
+
+    $message = "Failed to extract filename from: source_test_data_20140523_0012.csv\n";
+    $this->assertEquals($this->operations->upload(''), array(FALSE, $message));
+  }
+
+  public function testUploadSuccess() 
+  {
+    $lastMessage = array(
+      '226 closing data connection;',
+      'File upload success;',
+      'source_test_data_20140523_0015.csv'
+    );
+
+    $stub = $this->stubObjectWithOnce('Ftp', array(
+      "chdir" => TRUE,
+      "put" => TRUE,
+      "last_message" => implode(' ', $lastMessage)
+    ));
+    $this->operations = new Operations($stub, $this->username, $this->password);
+
+    $message = "test.csv has been uploaded as {$lastMessage[2]}\n";
+    $this->assertEquals($this->operations->upload('test.csv'), array(TRUE, $message));
   }
 }
 ?>

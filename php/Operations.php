@@ -1,6 +1,7 @@
 <?php
 /**
- * Contains all the operations to upload, poll and download files
+ * Contains all the operations to upload, poll and download files. Unlike the Node.js scripts, this
+ * operates synchronously.
  */
 class Operations
 {
@@ -72,6 +73,29 @@ class Operations
     }
 
     return TRUE;
+  }
+
+  /**
+   * Changes to the upload directory then uploads the specified file.
+   *
+   * @return Returns an array [<upload succeeded>, <message>]
+   */
+  public function upload($file)
+  {
+    $dir = "import_{$this->username}_default_config";
+
+    $this->ftp->chdir($dir);
+    if($this->ftp->put($file, $dir .'/'. $file)) {
+      $response_message = $this->ftp->last_message();
+      if (preg_match("/.* (.*)$/", $response_message, $parsed)) {
+          return array(TRUE, "$file has been uploaded as {$parsed[1]}\n");
+      } else {
+          return array(FALSE, "Failed to extract filename from: $response_message\n");
+      }
+    } else {
+      $message = strtolower($this->ftp->last_message());
+      return array(FALSE, "\nFile upload error: $message\n");
+    }
   }
 
   /**

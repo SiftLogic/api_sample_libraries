@@ -17,7 +17,7 @@ require_once 'patched_pemftp/ftp_class.php';
 $cmd = new Commando\Command();
 $cmd->setHelp("" .
   "Usage: ./main.php -f [file name] -l [download location] -k [key] -p [password]\n" .
-  "Example: ./main.php -f /tmp/test.csv -l /tmp -k TestKey -p e261742d-fe2f-4569-95e6-312689d049 --poll 10\n" .
+  "Example: ./main.php -f ../test.csv -l /tmp -k TestKey -p e261742d-fe2f-4569-95e6-312689d049 --poll 10\n" .
   "         Upload test.csv, process it and download the results to /tmp, poll every 10s"
   ) 
 ->option('f')
@@ -43,5 +43,7 @@ $cmd->setHelp("" .
 if (!empty($cmd['k'])){
   $operations = new Operations(new Ftp(TRUE), $cmd['k'], $cmd['p'], $cmd['host'], $cmd['port']);
   $operations->init();
+
+  $operations->upload($cmd['f']);
 }
 ?>
