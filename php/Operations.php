@@ -94,7 +94,10 @@ class Operations
   {
     $dir = "import_{$this->username}_default_config";
 
-    $formatted = end(split('/', trim($file)));
+    $formatted = explode('/', trim($file));
+    $formatted = end($formatted);
+
+
     if($this->ftp->put($formatted, "$dir/$formatted")) {
       $response_message = $this->ftp->last_message();
       if (preg_match("/.* (.*)$/", $response_message, $parsed)) {

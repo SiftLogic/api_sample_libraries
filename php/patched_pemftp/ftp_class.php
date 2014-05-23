@@ -41,6 +41,7 @@ class ftp_base {
 	var $_port_available;
 	var $_curtype;
 	var $_features;
+	var $stream;
 
 	var $_error_array;
 	var $AuthorizedTransferMode;
@@ -49,9 +50,10 @@ class ftp_base {
 	var $AutoAsciiExt;
 
 	/* Constructor */
-	function ftp_base($port_mode=FALSE) {
-		$this->__construct($port_mode);
-	}
+	// Removed to support strict mode (non-original author modification)
+	// function ftp_base($port_mode=FALSE) {
+	// 	$this->__construct($port_mode);
+	// }
 
 	function __construct($port_mode=FALSE, $verb=FALSE, $le=FALSE) {
 		$this->LocalEcho=$le;

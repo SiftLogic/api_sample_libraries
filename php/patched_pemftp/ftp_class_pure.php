@@ -1,5 +1,5 @@
 <?php
-class Ftp extends ftp_base {
+class FtpPure extends ftp_base {
 
 	function ftp($verb=FALSE, $le=FALSE) {
 		$this->__construct($verb, $le);

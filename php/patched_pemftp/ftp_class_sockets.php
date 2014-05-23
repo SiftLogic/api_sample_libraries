@@ -1,9 +1,10 @@
 <?php
 class Ftp extends ftp_base {
 
-	function ftp($verb=FALSE, $le=FALSE) {
-		$this->__construct($verb, $le);
-	}
+  // Removed to support strict mode (non-original author modification)
+	// function ftp($verb=FALSE, $le=FALSE) {
+	// 	$this->__construct($verb, $le);
+	// }
 
 	function __construct($verb=FALSE, $le=FALSE) {
 		parent::__construct(true, $verb, $le);
@@ -79,7 +80,9 @@ class Ftp extends ftp_base {
 		if($this->LocalEcho) echo "PUT > ",$cmd,CRLF;
 		$status=@socket_write($this->_ftp_control_sock, $cmd.CRLF);
 		if($status===false) {
-			$this->PushError($fnction,'socket write failed', socket_strerror(socket_last_error($this->stream)));
+			if (!empty($this->stream)){
+				$this->PushError($fnction,'socket write failed', socket_strerror(socket_last_error($this->stream)));
+			}
 			return FALSE;
 		}
 		$this->_lastaction=time();
@@ -108,7 +111,7 @@ class Ftp extends ftp_base {
 				$this->_data_close();
 				return FALSE;
 			}
-			$ip_port = explode(",", ereg_replace("^.+ \\(?([0-9]{1,3},[0-9]{1,3},[0-9]{1,3},[0-9]{1,3},[0-9]+,[0-9]+)\\)?.*".CRLF."$", "\\1", $this->_message));
+			$ip_port = explode(",", preg_replace("/^.+ \\(?([0-9]{1,3},[0-9]{1,3},[0-9]{1,3},[0-9]{1,3},[0-9]+,[0-9]+)\\)?.*".CRLF."$/", "\\1", $this->_message));
 			$this->_datahost=$ip_port[0].".".$ip_port[1].".".$ip_port[2].".".$ip_port[3];
             $this->_dataport=(((int)$ip_port[4])<<8) + ((int)$ip_port[5]);
 			$this->SendMSG("Connecting to ".$this->_datahost.":".$this->_dataport);
