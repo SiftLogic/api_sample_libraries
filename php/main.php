@@ -14,8 +14,8 @@ require_once 'Operations.php';
 require_once 'patched_pemftp/ftp_class.php';
 
 // Define CLI options
-$cmd = new Commando\Command();
-$cmd->setHelp("" .
+$argv = new Commando\Command();
+$argv->setHelp("" .
   "Usage: ./main.php -f [file name] -l [download location] -k [key] -p [password]\n" .
   "Example: ./main.php -f ../test.csv -l /tmp -k TestKey -p e261742d-fe2f-4569-95e6-312689d049 --poll 10\n" .
   "         Upload test.csv, process it and download the results to /tmp, poll every 10s"
@@ -40,10 +40,23 @@ $cmd->setHelp("" .
     ->describedAs('The port to connect to (default 21)');
 
 // Do not run any code while in help mode
-if (!empty($cmd['k'])){
-  $operations = new Operations(new Ftp(TRUE), $cmd['k'], $cmd['p'], $cmd['host'], $cmd['port']);
+if (!empty($argv['k'])){
+  $operations = new Operations(new Ftp(TRUE), $argv['k'], $argv['p'], 
+                               $argv['host'], $argv['port'], $argv['poll']);
   $operations->init();
 
-  $operations->upload($cmd['f']);
+  // Upload the file.
+  $message = $operations->upload($argv['f']);
+  if (!$message[0]){
+    throw new RuntimeException($message[1]);
+  }
+  echo($message[1]);
+
+  // Download when it is done.
+  $message = $operations->download($argv['l']);
+  if (!$message[0]){
+    throw new RuntimeException($message[1]);
+  }
+  echo($message[1]);
 }
 ?>

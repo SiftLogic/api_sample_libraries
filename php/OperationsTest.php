@@ -16,10 +16,11 @@ class OperationsTest extends PHPUnit_Framework_TestCase
     $this->password = 'e261742d-fe2f-4569-95e6-312689d04903';
     $this->host = 9871;
     $this->port = 'localhost';
+    $this->polling = 0.1;
     $this->ftp = new Ftp(FALSE);
 
     $this->operations = new Operations($this->ftp, $this->username, $this->password, $this->host, 
-                                       $this->port);
+                                       $this->port, $this->polling);
   }
 
   private function stubObjectWithOnce($name, $methods)
@@ -45,6 +46,7 @@ class OperationsTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($details['port'], $this->port);
 
     $this->assertEquals($this->operations->ftp, $this->ftp);
+    $this->assertEquals($this->operations->pollEvery, $this->polling);
   }
 
   public function testVariablesSetNonDefaultsOnConstruction() {
@@ -53,13 +55,17 @@ class OperationsTest extends PHPUnit_Framework_TestCase
 
     $this->assertEquals($details['host'], 'localhost');
     $this->assertEquals($details['port'], 21);
+    $this->assertEquals($operations->pollEvery, 300);
 
-    $operations = new Operations($this->ftp, $this->username, $this->password, '', '');
+    $operations = new Operations($this->ftp, $this->username, $this->password, '', '', '');
     $details = $operations->getConnectionDetails();
 
     $this->assertEquals($details['host'], 'localhost');
     $this->assertEquals($details['port'], 21);
+    $this->assertEquals($operations->pollEvery, 300);
   }
+
+  // init
 
   public function testInitSetServerError() {
     $this->setExpectedException('RuntimeException');
@@ -154,6 +160,8 @@ class OperationsTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($this->operations->init(), TRUE);
   }
 
+  // upload
+
   public function testUploadFileUploadError() 
   {
     $file = 'test.csv';
@@ -207,6 +215,61 @@ class OperationsTest extends PHPUnit_Framework_TestCase
 
     $message = "test.csv has been uploaded as {$lastMessage[2]}\n";
     $this->assertEquals($this->operations->upload('test.csv'), array(TRUE, $message));
+    $this->assertEquals($this->operations->uploadedFileName, $lastMessage[2]);
+  }
+
+  // getDownloadFileName
+
+  public function testGetDownloadFileNameNoModify()
+  {
+    $this->operations->uploadedFileName = '';
+    $this->assertEquals($this->operations->getDownloadFileName(), '');
+
+    $this->operations->uploadedFileName = 'test_test.doc';
+    $this->assertEquals($this->operations->getDownloadFileName(), 'test_test.doc');
+  }
+
+  public function testToDownloadFormatModify()
+  {
+    $this->operations->uploadedFileName = 'source_test.doc';
+    $this->assertEquals($this->operations->getDownloadFileName(), 'archive_test.doc');
+    
+    $this->operations->uploadedFileName = 'source_source_test.csv.csv';
+    $this->assertEquals($this->operations->getDownloadFileName(), 'archive_source_test.csv.zip');
+
+    $this->operations->uploadedFileName = 'source_source_test.txt.txt';
+    $this->assertEquals($this->operations->getDownloadFileName(), 'archive_source_test.txt.zip');
+
+    $this->operations->uploadedFileName = 'source_source_test.csv.txt';
+    $this->assertEquals($this->operations->getDownloadFileName(), 'archive_source_test.csv.zip');
+  }
+
+  // Download
+
+  public function testDownloadListError()
+  {
+    $stub = $this->stubObjectWithOnce('Ftp', array(
+      "nlist" => ''
+    ));
+    $this->operations = new Operations($stub, $this->username, $this->password);
+
+    $message = "The /complete directory does not exist.\n";
+    $this->assertEquals($this->operations->download(''), array(FALSE, $message));
+  }
+
+  public function testDownloadFileNotComplete()
+  {
+    $ftpStub = $this->stubObjectWithOnce('Ftp', array(
+      "nlist" => array('not here')
+    ));
+
+    $operationsStub = $this->getMock('Operations', array('waitAndDownload'),
+      array($ftpStub, $this->username, $this->password));
+    $operationsStub->expects($this->once())
+                   ->method('waitAndDownload')
+                   ->will($this->returnValue(array(FALSE, 'An error')));
+
+    $this->assertEquals($operationsStub->download('', $operationsStub), array(FALSE, 'An error'));
   }
 }
 ?>

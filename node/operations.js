@@ -8,9 +8,9 @@ var JSFtp = require('jsftp');
 // The constructor adds opts to the object which are used in init.
 // opts.username: The username to get into the ftp server
 // opts.password: The password to get into the ftp server
-// opts.polling: Poll every polling seconds. Defaults to 300 if falsey.
 // opts.host: The port to connect to. Defaults to localhost if falsey.
 // opts.port: The port to connect to. Defaults to 21 if falsey.
+// opts.polling: Poll every polling seconds. Defaults to 300 (5 minutes) if falsey.
 // onProcessed: Called once the file is uploaded. Any errors while checking for upload or processing
 //              completion will be sent as the first argument. If falsey, it is an empty function.
 module.exports = function(opts, onProcessed) {

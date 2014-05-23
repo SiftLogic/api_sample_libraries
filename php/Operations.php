@@ -9,7 +9,9 @@ class Operations
   private $password;
   private $host;
   private $port;
-
+  
+  public $uploadedFileName;// Set on upload
+  public $pollEvery;
   public $ftp;
 
   /**
@@ -20,19 +22,25 @@ class Operations
    * @param (password) The password to get into the ftp server.
    * @param (host) The port to connect to. Defaults to localhost.
    * @param (port) The port to connect to. Defaults to 21.
+   * @param (polling) Poll every polling seconds. Defaults to 300 (5 minutes) if falsey.
    */
-  public function __construct(Ftp $ftp, $username, $password, $host = 'localhost', $port = 21) 
+  public function __construct(Ftp $ftp, $username, $password,
+                              $host = 'localhost', $port = 21, $pollEvery = 300) 
   {
     $this->username = $username;
     $this->password = $password;
     $this->host = $host;
     $this->port = $port;
+    $this->pollEvery = $pollEvery;
 
     if (empty($this->port)){
       $this->port = 21;
     }
     if (empty($this->host)){
       $this->host = 'localhost';
+    }
+    if (empty($this->pollEvery)){
+      $this->pollEvery = 300;
     }
 
     $this->ftp = $ftp;
@@ -41,7 +49,7 @@ class Operations
   /**
    * Initializes the ftp object and logs in. Then goes to passive mode.
    *
-   * @return Returns true if operations could be initialized.
+   * @return TRUE if operations could be initialized.
    */
   public function init()
   {
@@ -78,7 +86,9 @@ class Operations
   /**
    * Changes to the upload directory then uploads the specified file.
    *
-   * @return Returns an array [<upload succeeded>, <message>]
+   * @param (file) The absolute location of the file to upload.
+   *
+   * @return An array of the format [<upload succeeded>, <message>].
    */
   public function upload($file)
   {
@@ -88,14 +98,64 @@ class Operations
     if($this->ftp->put($file, $dir .'/'. $file)) {
       $response_message = $this->ftp->last_message();
       if (preg_match("/.* (.*)$/", $response_message, $parsed)) {
-          return array(TRUE, "$file has been uploaded as {$parsed[1]}\n");
+        $this->uploadedFileName = trim($parsed[1]);
+
+        return array(TRUE, "$file has been uploaded as {$parsed[1]}\n");
       } else {
-          return array(FALSE, "Failed to extract filename from: $response_message\n");
+        return array(FALSE, "Failed to extract filename from: $response_message\n");
       }
     } else {
       $message = strtolower($this->ftp->last_message());
       return array(FALSE, "\nFile upload error: $message\n");
     }
+  }
+
+ /**
+   * Polls every pollEvery seconds until the last uploaded file can be downloaded. Then downloads.
+   *
+   * @param (location) The absolute location to download the file to.
+   *
+   * @return An array [<download succeeded>, <message>].
+   */
+  public function download($location, $self = '')
+  {
+    // So that waitAndDownload can be stubbed in the tests
+    if(empty($self)){
+      $self = $this;
+    }
+
+    $listing = $self->ftp->nlist('/complete');
+    if (empty($listing)){
+      return array(FALSE, "The /complete directory does not exist.\n");
+    }
+
+    $formatted = $self->getDownloadFileName();
+    if (array_search($formatted, $listing)){
+      return array(TRUE, "$formatted found.\n");
+    } else {
+      return $self->waitAndDownload($self->pollEvery, $formatted, $location);
+    }
+  }
+
+  /**
+   * Wait the specified time then download the file. Useful for test stubbing.
+   *
+   * @param (time) The time in seconds to sleep for.
+   * @param (file) The filename to download. Just need the filename, no path.
+   * @param (location) The absolute location to download the file to.
+   */
+  public function waitAndDownload($time, $file, $location)
+  {
+    echo("Waiting for results file $file ...\n");
+
+    sleep($time);
+
+    // We could have been kicked off due to inactivity...
+    if (!$this->init()){
+      return array(FALSE, "Could not reconnect to the server.\n");
+    }
+
+    return $this->download($location);
   }
 
   /**
@@ -111,6 +171,26 @@ class Operations
       "host" => $this->host,
       "port" => $this->port,
     );
+  }
+
+  /**
+   * Retrieves the upload file name and transforms it to the download one. 
+   *
+   * @return The current download name of the current upload.
+   */
+  public function getDownloadFileName()
+  {
+    if (empty($this->uploadedFileName)){
+      return $this->uploadedFileName;
+    }
+
+    $formatted = preg_replace('/source_/', 'archive_', $this->uploadedFileName, 1);
+
+    if (strpos($formatted, '.csv') || strpos($formatted, '.txt')){
+      $formatted = substr($formatted, 0, -4) .'.zip';
+    }
+
+    return $formatted;
   }
 }
 ?>
