@@ -2,7 +2,6 @@
  * Used by the main file to load and download files. This can be directly required to integrate into
  * your own Node.js application.
  **/
-
 var JSFtp = require('jsftp');
 
 // The constructor adds opts to the object which are used in init.
@@ -11,9 +10,7 @@ var JSFtp = require('jsftp');
 // opts.host: The port to connect to. Defaults to localhost if falsey.
 // opts.port: The port to connect to. Defaults to 21 if falsey.
 // opts.polling: Poll every polling seconds. Defaults to 300 (5 minutes) if falsey.
-// onProcessed: Called once the file is uploaded. Any errors while checking for upload or processing
-//              completion will be sent as the first argument. If falsey, it is an empty function.
-module.exports = function(opts, onProcessed) {
+module.exports = function(opts) {
   'use strict';
   
   var self = {
@@ -21,37 +18,22 @@ module.exports = function(opts, onProcessed) {
     password: opts.password,
     host: opts.host || 'localhost',
     port: opts.port || 21,
-    onProcessed: onProcessed || function() {},
+
+    uploadedFileName: null,// Set on upload
     JSFtp: JSFtp,// Make testing what is sent to this possible
     ftp: null,
 
     POLL_EVERY: (opts.polling || 300) * 1000// convert seconds to milliseconds
   };
 
-  // Initializes JSFtp making it watch debug info until a file is successfully uploaded. If there is
-  // any errors calls onProccessed with error message.
-  self.init = function() {
+  // Initializes JSFtp in debug mode.
+  self.init = function(callback) {
     self.ftp = new self.JSFtp({
       host: self.host,
       port: self.port,
       user:  self.username,
       pass: self.password,
       debugMode: true
-    });
-
-    self.ftp.on('jsftp_debug', function(eventType, data) {
-      if (eventType === 'response' && data){
-        // File was successfully uploaded
-        if (data.code === 226){
-          self.ftp.events = function(){};
-
-          console.log('Polling every', self.POLL_EVERY/60000, 'minutes:');
-          self.watchUpload(data.text.split('; ').slice(-1)[0]);
-        // A error with the file or backend specifically. e.g. Not enough credits
-        } else if (data.code === 550){
-          self.onProcessed(data.text);
-        }
-      }
     });
 
     return self;
@@ -68,29 +50,29 @@ module.exports = function(opts, onProcessed) {
                    .replace(new RegExp('.txt$'), '.zip');
   };
 
-  // Calls onProcessed once the given file has been loaded or there is an error. Reconnects for
-  // every request to deal with the lost connections. Reconnects if a socket connection is lost.
-  self.watchUpload = function(name) {
+  // Calls the callback once the last uploaded file (uploadedFileName) has been loaded or there is 
+  // an error. Reconnects for every request to deal with the lost connections.
+  self.watchUpload = function(callback) {
     // Stop the earlier jsftp_debug listener, it interferes with jsftp's libraries listing operation
     self.ftp.setDebugMode(false);
 
     if (self.ftp.socket.writable){
       self.ftp.list('/complete', function(err, res) {
         if (err){
-          self.onProcessed(err);
+          callback(err);
         }
 
-        var formatted = self.toDownloadFormat(name);
+        var formatted = self.toDownloadFormat(self.uploadedFileName);
         if (res && res.indexOf(formatted) > -1){
           console.log(formatted, 'found.');
 
-          self.onProcessed(false, formatted);
+          callback();
         } else {
           console.log('Waiting for results file', formatted, '...');
 
           setTimeout(function() {
             self.reConnect();
-            self.watchUpload(name);
+            self.watchUpload(callback);
           }, self.POLL_EVERY);
         }
       });
@@ -106,23 +88,48 @@ module.exports = function(opts, onProcessed) {
     self.ftp = new self.JSFtp({
       host: self.host,
       port: self.port,
-      user:  self.username,
+      user: self.username,
       pass: self.password
     });
   };
 
-  // Uploads the given file, include the full pathname if not in the current directory. Note, the 
-  // callback is called once the file is uploaded, not after it has been processed.
-  self.upload = function(filename, callback) {
-    var serverLocation = '/import_' + self.username + '_default_config/' +filename.split('/').pop();
-    self.ftp.put(filename, serverLocation, callback);
+  // Uploads the given file, include the full pathname if not in the current directory. Making it
+  // watch debug info until a file is successfully uploaded. singleFile specifies whether to upload
+  // in singleFile mode, by default is false. If there is any errors calls the callback with the
+  // error message.
+  self.upload = function(filename, singleFile, callback) {
+    self.ftp.on('jsftp_debug', function(eventType, data) {
+      if (eventType === 'response' && data){
+        // File was successfully uploaded
+        if (data.code === 226){
+          self.ftp.events = function(){};
+          self.uploadedFileName = data.text.split('; ').slice(-1)[0].trim();
+
+          callback();
+        // A error with the file or backend specifically. e.g. Not enough credits
+        } else if (data.code === 550){
+          callback(data.text);
+        }
+      }
+    });
+
+    var type = (singleFile) ? 'default' : 'splitfile';
+    var serverLocation ='/import_' + self.username + '_'+type+'_config/' +filename.split('/').pop();
+    self.ftp.put(filename, serverLocation);
   };
 
-  // Downloads the given file, include the full pathname if not in the current directory. Calls the
-  // callback once download is complete.
-  self.download = function(filename, callback) {
-    var filename = self.toDownloadFormat(filename);
-    self.ftp.get('/complete/' + filename.split('/').pop(), filename, callback);
+  // Polls until the results can be downloaded. Calls the callback once download is complete or on
+  // error.
+  self.download = function(location, callback) {
+    self.watchUpload(function(err) {
+      if (err){
+        return callback(err);
+      }
+      location = location.replace(new RegExp('\/$'), '');// Remove trailing slash if present
+
+      var filename = self.toDownloadFormat(self.uploadedFileName);
+      self.ftp.get('/complete/' + filename, location + '/' + filename, callback);
+    })
   };
 
   // Closes the ftp connection, should be done after each download. Calls the callback on complete.

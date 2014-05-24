@@ -39,7 +39,7 @@ $argv->setHelp("" .
 ->option('port')
     ->describedAs('The port to connect to (default 21)')
 ->option('singleFile')
-    ->describedAs('whether to run in single file mode (defaults to false)');
+    ->describedAs('Whether to run in single file mode (defaults to false)');
 
 // Do not run any code while in help mode
 if (!empty($argv['k'])){

@@ -22,7 +22,8 @@ var argv = require('yargs')
     p: 'The password defined in the manage api keys section',
     poll: 'The number of seconds to poll for (default 300)',
     host: 'The host to connect to (default localhost)',
-    port: 'The port to connect to (default 21)'
+    port: 'The port to connect to (default 21)',
+    singleFile: 'Whether to run in single file mode (defaults to false)'
   })
   .argv;
 
@@ -35,17 +36,20 @@ var operations = new Operations({
     polling: argv.poll,
     host: argv.host,
     port: argv.port,
-  }, function(err, name) {
+  }).init();
+
+operations.upload(argv.f, argv.singleFile, function(err) {
   if (err) {
     throw err;
   }
-  console.log('Now downloading', name);
 
-  operations.download(argv.l + name, function(err) {
+  console.log(argv.f, 'was uploaded.');
+
+  operations.download(argv.l, function(err) {
     if (err) {
       throw err;
     }
-    console.log('Downloaded', name, 'into', argv.l);
+    console.log('Downloaded into', argv.l + argv.f);
 
     // Always close the FTP connection properly once done with it.
     operations.quit(function(err) {
@@ -54,12 +58,4 @@ var operations = new Operations({
       }
     });
   });
-}).init();
-
-operations.upload(argv.f, function(err) {
-  if (err) {
-    throw err;
-  }
-
-  console.log(argv.f, 'was uploaded.');
 });

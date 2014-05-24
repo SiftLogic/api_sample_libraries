@@ -12,19 +12,17 @@ var Operations = require('./operations'),
     JSFtp = require('jsftp');
 
 describe('Operations', function() {
-  var operations, username, password, port, host, onProcessed, operationsFromInit;
+  var operations, username, password, port, host, operationsFromInit;
   beforeEach(function() {
     username = 'TestKey';
     password = 'e261742d-fe2f-4569-95e6-312689d04903';
     port = 9871;
     host = 'localhost';
 
-    onProcessed = stub();
-
     operations = new Operations({
       username: username,
       password: password
-    }, onProcessed);
+    });
 
     stub(operations, 'JSFtp').returns({
       on: stub(),
@@ -52,18 +50,19 @@ describe('Operations', function() {
     expect(_stub.calledWith.apply(_stub, args)).to.be.true;
   };
 
-  it('should set the options, onProcessed, JSFtp from instantiation', function() {
+  it('should set the options, JSFtp from instantiation', function() {
     operations = new Operations({
       username: username,
       password: password
-    }, onProcessed);
+    });
 
     expect(operations.username).to.equal(username);
     expect(operations.password).to.equal(password);
     expect(operations.port).to.equal(21);
     expect(operations.host).to.equal('localhost');
-    expect(operations.onProcessed).to.deep.equal(onProcessed);
     expect(operations.JSFtp).to.deep.equal(JSFtp);
+
+    expect(operations.uploadedFileName).to.be.null;
   });
 
   it('should set a custom host and port when specified', function() {
@@ -83,7 +82,7 @@ describe('Operations', function() {
       username: username,
       password: password,
       polling: 2
-    }, onProcessed);
+    });
 
     expect(operations.POLL_EVERY).to.equal(2000);
   });
@@ -109,51 +108,6 @@ describe('Operations', function() {
         pass: operations.password,
         debugMode: true
       });
-    });
-
-    it('should watch jsftp_debug calling watchUpload only upon getting a file upload message and',
-    function() {
-      stub(operations, 'watchUpload');
-
-      calledOnceWith(operations.ftp.on, 'jsftp_debug');
-
-      operations.ftp.on.args[0][1]('test', {code: 225});
-
-      expect(operations.watchUpload.calledOnce).to.be.false;
-
-      operations.ftp.on.args[0][1]('response', {code: 225});
-
-      expect(operations.watchUpload.calledOnce).to.be.false;
-
-      var file = 'source_sample_subscriber_data_20140519_0004.csv';
-      operations.ftp.on.args[0][1]('response', {
-        code: 226,
-        text: '226 closing data connection; File upload success; ' + file
-      });
-
-      calledOnceWith(operations.watchUpload, file);
-    });
-
-    it('should show a polling message', function() {
-      stub(operations, 'watchUpload');
-      operations.POLL_EVERY = 60000;
-
-      operations.ftp.on.args[0][1]('response', {
-        code: 226,
-        text: ''
-      });
-
-      calledOnceWith(console.log, 'Polling every', 1, 'minutes:');
-    });
-
-    it('should call onProcessed with the error text when the code 550', function() {
-      var text = '550 Insufficient credits (Upload ID: 5c835271b08622f30a125a421c8da0bf)';
-      operations.ftp.on.args[0][1]('response', {
-        code: 550,
-        text: text
-      });
-
-      calledOnceWith(operations.onProcessed, text);
     });
   });
 
@@ -186,25 +140,80 @@ describe('Operations', function() {
   });
 
   describe('upload', function() {
-    it('should call ftp put with the file name and destination directory and callback', function() { 
-      var filename = 'test.csv',
-          callback = stub();
+    var callback;
+    beforeEach(function() {
+      operations.init();
+      callback = stub();
+    });
 
-      operations.init().upload(filename, callback);
+    it('should call put with the file name and destination directory with multifile', function() { 
+      var filename = 'test.csv';
+
+      operations.upload(filename, null, callback);
+
+      var serverLocation = '/import_' + operations.username + '_splitfile_config/' + filename;
+      calledOnceWith(operations.ftp.put, filename, serverLocation);
+    });
+
+    it('should call put with the file name and destination directory with singlefile', function() { 
+      var filename = 'test.csv';
+
+      operations.upload(filename, true, callback);
 
       var serverLocation = '/import_' + operations.username + '_default_config/' + filename;
-      calledOnceWith(operations.ftp.put, filename, serverLocation, callback);
+      calledOnceWith(operations.ftp.put, filename, serverLocation);
+    });
+
+    it('should watch jsftp_debug calling the callback only upon getting a file upload message and '+
+       'set the uploadedFileName',
+    function() {
+      operations.upload('', null, callback);
+
+      calledOnceWith(operations.ftp.on, 'jsftp_debug');
+
+      operations.ftp.on.args[0][1]('test', {code: 225});
+
+      expect(callback.calledOnce).to.be.false;
+
+      operations.ftp.on.args[0][1]('response', {code: 225});
+
+      expect(callback.calledOnce).to.be.false;
+
+      var file = 'source_sample_subscriber_data_20140519_0004.csv';
+      operations.ftp.on.args[0][1]('response', {
+        code: 226,
+        text: '226 closing data connection; File upload success; ' + file
+      });
+
+      expect(callback.calledOnce).to.be.true;
+      expect(operations.uploadedFileName).to.equal(file);
+      expect(operations.ftp.events + '').to.equal('function (){}');// V8 only test
+    });
+
+    it('should call the callback with the error text when the code 550', function() {
+      operations.upload('', null, callback);
+
+      var text = '550 Insufficient credits (Upload ID: 5c835271b08622f30a125a421c8da0bf)';
+      operations.ftp.on.args[0][1]('response', {
+        code: 550,
+        text: text
+      });
+
+      calledOnceWith(callback, text);
     });
   });
 
   describe('watchUpload', function() {
-    var filename;
+    var filename, callback;
     beforeEach(function() {
+      callback = stub();
       stub(operations, 'reConnect');
       stub(console, 'log');
 
       filename = 'test1.csv';
       stub(operations, 'toDownloadFormat').returns(filename);
+
+      operations.uploadedFileName = null;
     });
 
     afterEach(function() {
@@ -212,38 +221,39 @@ describe('Operations', function() {
     });
 
     it('should set debugMode to false', function() {
-      operations.watchUpload();
+      operations.watchUpload(callback);
 
       calledOnceWith(operations.ftp.setDebugMode, false);
     });
 
     it('should list the complete directory', function() {
-      operations.watchUpload();
+      operations.watchUpload(callback);
 
       calledOnceWith(operations.ftp.list, '/complete');
     });
 
     describe('list callback', function() {
       it('should print that the data is formatted when the expected file is found and calls ' +
-         'onProcessed and not reConnect', function() {
-        operations.watchUpload();
+         'the callback and not reConnect', function() {
+        operations.uploadedFileName = filename;
+        operations.watchUpload(callback);
 
         operations.ftp.list.args[0][1](false, 'test0.csv\n' + filename + 'test2.csv');
 
         calledOnceWith(console.log, filename, 'found.');
-        calledOnceWith(onProcessed, false, filename);
+        calledOnceWith(callback);
 
         expect(operations.reConnect.called).to.be.false;
       });
 
-      it('should call onProcessed and does not reconnect', function() {
+      it('should call the callback and does not reconnect', function() {
         var error = 'ERROR: AUTHENTICATION ERROR';
 
-        operations.watchUpload();
+        operations.watchUpload(callback);
 
         operations.ftp.list.args[0][1](error);
 
-        calledOnceWith(onProcessed, error);
+        calledOnceWith(callback, error);
         expect(operations.reConnect.called).to.be.false;
       });
 
@@ -251,7 +261,7 @@ describe('Operations', function() {
          'and reconnects', function() {
         var clock = sinon.useFakeTimers();
 
-        operations.watchUpload(filename);
+        operations.watchUpload(callback);
 
         operations.ftp.list.args[0][1](false, 'test0.csv\ntest2.csv');
         calledOnceWith(console.log, 'Waiting for results file', filename, '...');
@@ -260,7 +270,7 @@ describe('Operations', function() {
 
         clock.timeouts[1].func();
 
-        calledOnceWith(operations.watchUpload, filename);
+        calledOnceWith(operations.watchUpload, callback);
         expect(operations.reConnect.calledOnce).to.be.true;
       });
     });
@@ -268,7 +278,7 @@ describe('Operations', function() {
     it('should call reconnect when the socket is not writable', function() {
       operations.ftp.socket.writable = false;
 
-      operations.watchUpload(filename);
+      operations.watchUpload(callback);
 
       expect(operations.reConnect.calledOnce).to.be.true;
     });
@@ -295,11 +305,29 @@ describe('Operations', function() {
   });
 
   describe('download', function() {
-    it('should call ftp get with the file name, destination directory and callback', function() { 
-      var filename = 'test/test.csv',
-          callback = stub();
+    var callback;
+    beforeEach(function() {
+      callback = stub();
+      stub(operations, 'watchUpload');
+    });
 
-      operations.download(filename, callback);
+    it('should call watchUpload with a function that calls the callback on error', function() { 
+      operations.download('', callback);
+
+      expect(operations.watchUpload.calledOnce).to.be.true;
+      operations.watchUpload.args[0][0]('An Error');
+
+      calledOnceWith(callback, 'An Error');
+    });
+
+    it('should call watchUpload with a function that call ftp get with the file name, destination '+
+       'directory and callback', function() {
+      var location = 'test/';
+      stub(operations, 'toDownloadFormat').returns('test.zip');
+
+      operations.download(location, callback);
+
+      operations.watchUpload.args[0][0]();
 
       calledOnceWith(operations.ftp.get, '/complete/test.zip', 'test/test.zip', callback);
     });
