@@ -2,7 +2,6 @@
  * Tests all functions in operations.js.
  * NOTE: mocha needs to be installed as global: npm install -g mocha
  **/
-
 var sinon = require('sinon'),
     stub = sinon.stub,
     chai = require('chai'),

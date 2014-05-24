@@ -42,7 +42,6 @@ operations.upload(argv.f, argv.singleFile, function(err) {
   if (err) {
     throw err;
   }
-
   console.log(argv.f, 'was uploaded.');
 
   operations.download(argv.l, function(err) {
