@@ -8,3 +8,7 @@ Build
 =====
 
 Using Visual Express 2010 Edition (We are not a Microsoft shop). All these are in DotNetAPISample.
+Test Command Line Options:
+Filled Test: -f file -l location -k key -p password --poll 2 --host localhost --port 21 --singleFile true
+Defaults Test: -f file -l location -k key -p password
+Display help: --help 
