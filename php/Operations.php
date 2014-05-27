@@ -53,9 +53,9 @@ class Operations
    */
   public function init()
   {
-    if (!$this->ftp->SetServer($this->host)) {
+    if (!$this->ftp->SetServer($this->host, $this->port)) {
         $this->ftp->quit();
-        throw new RuntimeException("Could not set the server.\n");
+        throw new RuntimeException("Could not set the server with $this->host:$this->port.\n");
     }
 
     if (!$this->ftp->connect()) {

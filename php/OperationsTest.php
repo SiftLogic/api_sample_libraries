@@ -143,7 +143,7 @@ class OperationsTest extends PHPUnit_Framework_TestCase
 
     $stub->expects($this->once())
          ->method('SetServer')
-         ->with($this->host);
+         ->with($this->host, $this->port);
     $stub->expects($this->once())
          ->method('login')
          ->with($this->username, $this->password);

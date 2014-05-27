@@ -20,7 +20,7 @@ Make sure PHP \>= <b>5.0</b> is installed, then:
   </code>
 </pre>
 
-If you want to run the tests (<code>phpunit --strict OperationsTest.php</code>):
+If you want to run the tests (<code>phpunit --strict OperationsTest</code>):
 
 <pre>
   <code>

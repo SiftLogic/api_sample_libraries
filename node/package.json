@@ -4,7 +4,7 @@
   "description": "A simple node FTP server for connecting to our APIs",
   "main": "main.js",
   "scripts": {
-    "test": "mocha operations_test.js"
+    "test": "mocha operationsTest.js"
   },
   "author": "Jacob Friesen",
   "devDependencies": {

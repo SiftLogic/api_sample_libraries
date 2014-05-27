@@ -20,7 +20,7 @@ Make sure Node.js \>= <b>0.9.12</b> is installed as well as [NPM](https://www.np
   </code>
 </pre>
 
-If you want to run the tests (<code>npm test</code>):
+If you want to run the tests (<code>npm test</code>) or (<code>mocha test</code>):
 
 <pre>
   <code>

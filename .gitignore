@@ -12,6 +12,7 @@ todo.org
 .otp_plt
 nbproject/private/
 .fontconfig
+*.zip
 
 ##
 # Node.js gitignore from https://github.com/github/gitignore
