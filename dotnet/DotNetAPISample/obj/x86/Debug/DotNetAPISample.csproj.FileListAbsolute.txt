@@ -1,5 +1,0 @@
-C:\Users\IEUser\api_sample_libraries\dotnet\DotNetAPISample\bin\Debug\DotNetAPISample.exe
-C:\Users\IEUser\api_sample_libraries\dotnet\DotNetAPISample\bin\Debug\DotNetAPISample.pdb
-C:\Users\IEUser\api_sample_libraries\dotnet\DotNetAPISample\obj\x86\Debug\ResolveAssemblyReference.cache
-C:\Users\IEUser\api_sample_libraries\dotnet\DotNetAPISample\obj\x86\Debug\DotNetAPISample.exe
-C:\Users\IEUser\api_sample_libraries\dotnet\DotNetAPISample\obj\x86\Debug\DotNetAPISample.pdb
