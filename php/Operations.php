@@ -15,14 +15,14 @@ class Operations
   public $ftp;
 
   /**
-   * The constructor adds opts to the object which are used in init.
+   * The constructor adds properties to the object which are used in init.
    *
    * @param (ftp) An instance of ftp to use.
    * @param (username) The username to get into the ftp server.
    * @param (password) The password to get into the ftp server.
-   * @param (host) The port to connect to. Defaults to localhost.
+   * @param (host) The host to connect to. Defaults to localhost.
    * @param (port) The port to connect to. Defaults to 21.
-   * @param (polling) Poll every polling seconds. Defaults to 300 (5 minutes) if falsey.
+   * @param (polling) Number of seconds to poll for. Defaults to 300 (5 minutes) if falsey.
    */
   public function __construct(Ftp $ftp, $username, $password,
                               $host = 'localhost', $port = 21, $pollEvery = 300) 

@@ -14,8 +14,8 @@ class OperationsTest extends PHPUnit_Framework_TestCase
   {
     $this->username = 'TestKey';
     $this->password = 'e261742d-fe2f-4569-95e6-312689d04903';
-    $this->host = 9871;
-    $this->port = 'localhost';
+    $this->host = 'localhost';
+    $this->port = 9871;
     $this->polling = 0.1;
     $this->ftp = new Ftp(FALSE);
 
