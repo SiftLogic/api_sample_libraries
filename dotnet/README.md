@@ -7,7 +7,20 @@ have that you can try the main.php file for an upload demo. For example:
 Build
 =====
 
-Using Visual Express 2010 Edition (We are not a Microsoft shop). All these are in DotNetAPISample.
+Using Visual Studio Express 2013 Edition, but newer or slightly older versions of Visual Studio should be able to load the solution file in \CSharpFTPExample fine.
+
+Installation
+============
+
+All files are included with this distribution so no installation is needed.
+
+
+Files And Folders
+=================
+
+* **CSharpFTPExample:** Visual Studio solution folder. The layout in the folder follows the standard Visual Studio solution layout.
+
+
 Test Command Line Options:
 Filled Test: -f file -l location -k key -p password --poll 2 --host localhost --port 21 --singleFile true
 Defaults Test: -f file -l location -k key -p password

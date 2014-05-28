@@ -53,13 +53,16 @@ namespace CSharpFTPExample
         public string GetUsage()
         {
             var usage = new StringBuilder();
-            usage.AppendLine("Usage: -f [file name] -l [download location] -k [key] -p [password]");
+            usage.AppendLine("Usage: -f [file name] -l [download location] -k [key] -p [password]\n");
             usage.AppendLine("Example: -f ../test.csv -l /tmp -k TestKey -p e261742d-fe2f-4569-95e6-312689d049 --poll 10");
             usage.AppendLine("Upload test.csv, process it and download the results to /tmp, poll every 10s\n");
-            usage.AppendLine(HelpText.AutoBuild(this,
-                (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current)));
 
-            return usage.ToString();
+            // Remove the copyright and version lines as they are unnecessary
+            var help = HelpText.AutoBuild(this, (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
+            string[] helpArray = (help + "").Split('\n');
+            usage.AppendLine(String.Join("\n", helpArray, 2, helpArray.Length - 3));
+
+            return usage + "";
         }
     }
 
@@ -83,7 +86,8 @@ namespace CSharpFTPExample
                 Console.WriteLine("singleFile: {0}", options.InputSingleFile);
             }
 
-            System.Threading.Thread.Sleep(10000000);
+            Console.WriteLine("Press Enter to close this program...");
+            Console.ReadLine();
         }
     }
 }
