@@ -7,3 +7,5 @@ C:\Users\IEUser\api_sample_libraries\dotnet\CSharpFTPExampleTests\bin\Debug\CSha
 C:\Users\IEUser\api_sample_libraries\dotnet\CSharpFTPExampleTests\bin\Debug\CommandLine.dll
 C:\Users\IEUser\api_sample_libraries\dotnet\CSharpFTPExampleTests\bin\Debug\CSharpFTPExample.pdb
 C:\Users\IEUser\api_sample_libraries\dotnet\CSharpFTPExampleTests\bin\Debug\CommandLine.xml
+C:\Users\IEUser\api_sample_libraries\dotnet\CSharpFTPExampleTests\bin\Debug\Moq.dll
+C:\Users\IEUser\api_sample_libraries\dotnet\CSharpFTPExampleTests\bin\Debug\Moq.xml

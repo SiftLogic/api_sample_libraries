@@ -16,36 +16,36 @@ namespace CSharpFTPExample
         // Required
         [Option('f', Required = true,
           HelpText = "The absolute file path of the upload file")]
-        public string InputFile { get; set; }
+        public string File { get; set; }
 
         [Option('l', Required = true,
           HelpText = "The absolute location of where the results file should be placed")]
-        public string InputLocation { get; set; }
+        public string Location { get; set; }
 
         [Option('k', Required = true,
           HelpText = "The key name defined in the manage api keys section")]
-        public string InputKey { get; set; }
+        public string Key { get; set; }
 
         [Option('p', Required = true,
           HelpText = "The password defined in the manage api keys section")]
-        public string InputPassword { get; set; }
+        public string Password { get; set; }
 
         // Optional
-        [Option("poll", DefaultValue = "300",
+        [Option("poll", DefaultValue = 300,
           HelpText = "The number of seconds to poll for")]
-        public string InputPoll { get; set; }
+        public int Poll { get; set; }
 
         [Option("host", DefaultValue = "localhost",
           HelpText = "The host to connect to")]
-        public string InputHost { get; set; }
+        public string Host { get; set; }
 
-        [Option("port", DefaultValue = "21",
+        [Option("port", DefaultValue = 21,
           HelpText = "The port to connect to")]
-        public string InputPort { get; set; }
+        public int Port { get; set; }
 
         [Option("singleFile", DefaultValue = false,
           HelpText = "Whether to run in single file mode")]
-        public bool InputSingleFile { get; set; }
+        public bool SingleFile { get; set; }
 
         [HelpOption]
         public string GetUsage()
@@ -75,22 +75,27 @@ namespace CSharpFTPExample
     {
         static void Main(string[] args)
         {
-            var options = new Options();
-            if (CommandLine.Parser.Default.ParseArguments(args, options))
+            var opts = new Options();
+            if (CommandLine.Parser.Default.ParseArguments(args, opts))
             {
                 // Required
-                Console.WriteLine("File: {0}", options.InputFile);
-                Console.WriteLine("Location: {0}", options.InputLocation);
-                Console.WriteLine("Key: {0}", options.InputKey);
-                Console.WriteLine("Password: {0}", options.InputPassword);
+                Console.WriteLine("File: {0}", opts.File);
+                Console.WriteLine("Location: {0}", opts.Location);
+                Console.WriteLine("Key: {0}", opts.Key);
+                Console.WriteLine("Password: {0}", opts.Password);
 
                 // Optional
-                Console.WriteLine("Poll: {0}", options.InputPoll);
-                Console.WriteLine("Host: {0}", options.InputHost);
-                Console.WriteLine("Port: {0}", options.InputPort);
-                Console.WriteLine("singleFile: {0}", options.InputSingleFile);
+                Console.WriteLine("Poll: {0}", opts.Poll);
+                Console.WriteLine("Host: {0}", opts.Host);
+                Console.WriteLine("Port: {0}", opts.Port);
+                Console.WriteLine("singleFile: {0}", opts.SingleFile);
 
-                Operations operations = new Operations(options.InputKey, options.InputPassword);
+                Operations operations = new Operations(opts.Key, opts.Password, opts.Host, opts.Port, opts.Poll);
+                operations.init();
+
+                operations.upload(opts.File);
+
+                operations.quit();
             }
 
             Console.WriteLine("Press Enter to close this program...");
