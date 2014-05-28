@@ -1,9 +1,4 @@
-﻿// Demonstrates how the operations object can be used. It is better to require the operation.js file
-// your code directly for increased flexibility.
-// 1. Uploads the specified file in multifile mode (unless otherwise specified).
-// 2. Polls the server until the results are complete.
-// 3. Downloads the results to the specified location.
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,6 +8,9 @@ using CommandLine.Text;
 
 namespace CSharpFTPExample
 {
+    /// <summary>
+    /// Command line definitions used by the CommandLine library
+    /// </summary>
     class Options
     {
         // Required
@@ -66,6 +64,13 @@ namespace CSharpFTPExample
         }
     }
 
+    /// <summary>
+    /// Demonstrates how the operations object can be used. It is better to require the operation.js file
+    /// your code directly for increased flexibility.
+    /// 1. Uploads the specified file in multifile mode (unless otherwise specified).
+    /// 2. Polls the server until the results are complete.
+    /// 3. Downloads the results to the specified location.
+    /// </summary>
     class Program
     {
         static void Main(string[] args)
@@ -84,6 +89,8 @@ namespace CSharpFTPExample
                 Console.WriteLine("Host: {0}", options.InputHost);
                 Console.WriteLine("Port: {0}", options.InputPort);
                 Console.WriteLine("singleFile: {0}", options.InputSingleFile);
+
+                Operations operations = new Operations(options.InputKey, options.InputPassword);
             }
 
             Console.WriteLine("Press Enter to close this program...");
