@@ -23,9 +23,24 @@ Using Visual Studio Express 2013 Edition, but newer or slightly older versions o
 Files And Folders
 =================
 
-* **CSharpFTPExample:** Visual Studio project folder (also contains the solution). Important files:
- * **CSharpFTPExample.csproj:** The project file used to load FTP example code
- * **CSharpFTPExample.sln:** The solution file for the entire project including the tests
+* **CSharpFTPExample/:** Visual Studio project folder of the main code (also contains the solution). Important files and folders:
+ * **bin/:** Contains the debug and release executables.
+ * **packages/:** Contains packages used across the entire solution.
+ * **Properties/:** Basic information about the project such as copyrights
+ * **CSharpFTPExample.csproj:** The project file used to load FTP example code.
+ * **CSharpFTPExample.sln:** The solution file for the entire project including the tests.
+ * **Program.cs:** Used to run the program, accepts command line arguments.
+ * **IWebClient.cs:** An interface around System.Net.WebClient. Since most mocking libraries including what we are using (Moq) cannot test non virtual methods, interfaces like this must be created around concrete classes.
+ * **WrappedWebClient.cs:** The implementation for IWebClient.cs, just calls WebClient's methods without modification.
+ * **packages.config:** XML Specification of the libraries this program uses
+
+* **CSharpFTPExampleTests/:** Visual Studio project folder of the tests for the main code. Important files and folders:
+ * **bin/:** Contains the debug and release executables.
+ * **Properties/:** Basic information about the project such as copyrights
+ * **CSharpFTPExample.csproj:** The project file used to load FTP example test code.
+ * **OperationsTests.cs:** Tests for the Operations class
+ * **packages.config:** XML Specification of the libraries this program uses
+
 
 
 A MINIMAL BUILD EXPLANATION NEEDED

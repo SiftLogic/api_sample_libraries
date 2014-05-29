@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Collections;
 using System.Collections.Specialized;
-using System.Threading.Tasks;
 using System.Net;
 using System.IO;
 using System.Reflection;
@@ -23,8 +19,7 @@ namespace CSharpFTPExample
         private int port;
 
         public int pollEvery;
-        public WebClient ftp = null;
-        public Stream stream = null;
+        public IWebClient ftp = null;
 
         /// <summary>
         /// The constructor adds properties to the object which are used in init.
@@ -47,16 +42,21 @@ namespace CSharpFTPExample
         /// Initializes the web client was initialized with the correct credentials. Returns
         /// <value>true if this succeeded.</value>
         /// </summary>
-        public Boolean init()
+        public Boolean Init()
         {
-            ftp = new WebClient();
+            this.ftp = new WrappedWebClient();
 
             ftp.Credentials = new NetworkCredential(username, password);
 
             return true;
         }
 
-        public void upload(string filename)
+        /// <summary>
+        /// Uploads the given filename to the FTP server using the information sent into initialization.
+        /// <param name="filename">The absolute path name of the file.</param>
+        /// <value>true if this succeeded.</value>
+        /// </summary>
+        public Boolean Upload(string filename)
         {
             var type = "splitfile";
             var directory = "/import_" + username + "_" + type + "_config/";
@@ -65,21 +65,15 @@ namespace CSharpFTPExample
             {
                 ftp.UploadFile("ftp://" + host + ':' + port + directory + new FileInfo(filename).Name, "STOR", filename);
 
-                string[] status = GetStatusDescription(ftp);
-                Console.WriteLine("Description: " + status[0] + " " + status[1]);
+                //string[] status = GetStatusDescription(ftp);
+                //Console.WriteLine("Description: " + status[0] + " " + status[1]);
             }
             catch (Exception e)
             {
                 throw new Exception(e + "");
             }
-        }
 
-        public void quit()
-        {
-            if (stream != null)
-            {
-                stream.Close();
-            }
+            return true;
         }
 
         /// <summary>
@@ -101,9 +95,9 @@ namespace CSharpFTPExample
         /// A way of extracting ftp responses from WebClient obtained from http://stackoverflow.com/a/6470446. Returns
         /// <value>An array in the form [<status code>, <description>]</value>
         /// </summary>
-        private string[] GetStatusDescription(WebClient client)
+        private string[] GetStatusDescription(IWebClient client)
         {
-            FieldInfo responseField = client.GetType().GetField("m_WebResponse", BindingFlags.Instance | BindingFlags.NonPublic);
+            FieldInfo responseField = client.GetType().BaseType.GetField("m_WebResponse", BindingFlags.Instance | BindingFlags.NonPublic);
 
             if (responseField != null)
             {
@@ -112,6 +106,10 @@ namespace CSharpFTPExample
                 if (response != null)
                 {
                     return new string[] { (int)response.StatusCode + "", response.StatusDescription };
+                }
+                else
+                {
+                    throw new Exception("Error: Could not get the response from the server.");
                 }
             }
 

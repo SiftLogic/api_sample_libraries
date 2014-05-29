@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using CommandLine;
 using CommandLine.Text;
 
@@ -91,11 +90,9 @@ namespace CSharpFTPExample
                 Console.WriteLine("singleFile: {0}", opts.SingleFile);
 
                 Operations operations = new Operations(opts.Key, opts.Password, opts.Host, opts.Port, opts.Poll);
-                operations.init();
+                operations.Init();
 
-                operations.upload(opts.File);
-
-                operations.quit();
+                operations.Upload(opts.File);
             }
 
             Console.WriteLine("Press Enter to close this program...");
