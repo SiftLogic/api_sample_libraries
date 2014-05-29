@@ -8,7 +8,7 @@ namespace CSharpFTPExample
     /// </summary>
     public interface IWebClient : IDisposable
     {
-        byte[] UploadFile(string address, string method, string fileName);
+        byte[] UploadFile(string address, string fileName);
         ICredentials Credentials { get; set; }
     }
 

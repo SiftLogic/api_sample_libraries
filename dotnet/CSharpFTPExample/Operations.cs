@@ -18,6 +18,7 @@ namespace CSharpFTPExample
         private string host;
         private int port;
 
+        public string uploadFileName = null;
         public int pollEvery;
         public IWebClient ftp = null;
 
@@ -42,7 +43,7 @@ namespace CSharpFTPExample
         /// Initializes the web client was initialized with the correct credentials. Returns
         /// <value>true if this succeeded.</value>
         /// </summary>
-        public Boolean Init()
+        public bool Init()
         {
             this.ftp = new WrappedWebClient();
 
@@ -52,28 +53,36 @@ namespace CSharpFTPExample
         }
 
         /// <summary>
-        /// Uploads the given filename to the FTP server using the information sent into initialization.
-        /// <param name="filename">The absolute path name of the file.</param>
-        /// <value>true if this succeeded.</value>
+        /// Uploads the specified file.
+        /// <param name="filename">The location of the file to upload.</param>
+        /// <param name="singleFile">If the file is uploaded in single file mode. Defaults to false.</param>
+        /// <value>A Tuble in the form (<upload succeeded>, <message>)</value>
         /// </summary>
-        public Boolean Upload(string filename)
+        public Tuple<bool, string> Upload(string file, bool singleFile = false)
         {
-            var type = "splitfile";
+            var type = singleFile ? "default" : "splitfile";
             var directory = "/import_" + username + "_" + type + "_config/";
 
             try
             {
-                ftp.UploadFile("ftp://" + host + ':' + port + directory + new FileInfo(filename).Name, "STOR", filename);
+                var fileName = new FileInfo(file).Name;
+                ftp.UploadFile("ftp://" + host + ':' + port + directory + fileName, file);
 
-                //string[] status = GetStatusDescription(ftp);
-                //Console.WriteLine("Description: " + status[0] + " " + status[1]);
+                var status = GetStatusDescription(ftp);
+                if (status.Item1 == 226)
+                {
+                    uploadFileName = status.Item2.Split(';').Last().Trim();
+                    return new Tuple<bool, string>(true, fileName + " has been uploaded as " + uploadFileName);
+                }
+                else
+                {
+                    return new Tuple<bool, string>(false, "Failed to extract filename from: " + status.Item2);
+                }
             }
-            catch (Exception e)
+            catch (Exception exception)
             {
-                throw new Exception(e + "");
+                return new Tuple<bool, string>(false, exception.Message);
             }
-
-            return true;
         }
 
         /// <summary>
@@ -92,12 +101,13 @@ namespace CSharpFTPExample
         }
 
         /// <summary>
-        /// A way of extracting ftp responses from WebClient obtained from http://stackoverflow.com/a/6470446. Returns
-        /// <value>An array in the form [<status code>, <description>]</value>
+        /// A way of extracting ftp responses from WebClient modified from http://stackoverflow.com/a/6470446. Returns
+        /// <value>A Tuple in the form (<status code>, <description>)</value>
         /// </summary>
-        private string[] GetStatusDescription(IWebClient client)
+        public virtual Tuple<int, string> GetStatusDescription(IWebClient client)
         {
-            FieldInfo responseField = client.GetType().BaseType.GetField("m_WebResponse", BindingFlags.Instance | BindingFlags.NonPublic);
+            var type = client.GetType().BaseType;
+            FieldInfo responseField = type.GetField("m_WebResponse", BindingFlags.Instance | BindingFlags.NonPublic);
 
             if (responseField != null)
             {
@@ -105,15 +115,15 @@ namespace CSharpFTPExample
 
                 if (response != null)
                 {
-                    return new string[] { (int)response.StatusCode + "", response.StatusDescription };
+                    return new Tuple<int, string>((int)response.StatusCode, response.StatusDescription);
                 }
                 else
                 {
-                    throw new Exception("Error: Could not get the response from the server.");
+                    throw new Exception("Could not get the status code and description from the server.");
                 }
             }
 
-            throw new Exception("Error: Could not get the response field from the server.");
+            throw new Exception("Could not get the response field from the server.");
         }
     }
 }

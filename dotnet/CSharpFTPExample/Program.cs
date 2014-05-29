@@ -92,7 +92,12 @@ namespace CSharpFTPExample
                 Operations operations = new Operations(opts.Key, opts.Password, opts.Host, opts.Port, opts.Poll);
                 operations.Init();
 
-                operations.Upload(opts.File);
+                var result = operations.Upload(opts.File);
+                if (!result.Item1)
+                {
+                    throw new Exception(result.Item2);
+                }
+                Console.WriteLine(result.Item2);
             }
 
             Console.WriteLine("Press Enter to close this program...");

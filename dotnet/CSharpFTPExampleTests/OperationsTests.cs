@@ -11,6 +11,11 @@ namespace CsharpFTPExampleTests
     [TestClass]
     public class OperationsTests
     {
+        private Mock<Operations> mockOperations;
+        private Operations operations;
+        private Mock<IWebClient> mockWebClient;
+        private IWebClient client;
+
         private string username = "TestKey";
         private string password = "e261742d-fe2f-4569-95e6-312689d04903";
         private string host = "bacon";
@@ -19,11 +24,19 @@ namespace CsharpFTPExampleTests
 
         private string file = @"C:\WINDOWS\Temp\test.csv";
 
+        [TestInitialize]
+        public void Setup()
+        {
+            mockOperations = new Mock<Operations>(username, password, host, port, pollEvery);
+            operations = mockOperations.Object;
+
+            mockWebClient = new Mock<IWebClient>();
+            client = mockWebClient.Object;
+        }
+
         [TestMethod]
         public void Instantiation_AllVariables_SetsValues()
         {
-            Operations operations = new Operations(username, password, host, port, pollEvery);
-
             Assert.AreEqual(operations.pollEvery, pollEvery);
 
             var details = operations.GetConnectionDetails();
@@ -45,11 +58,11 @@ namespace CsharpFTPExampleTests
             Assert.AreEqual(details["port"], 21);
         }
 
+        // Init
+
         [TestMethod]
         public void Init_Default_SetsFTPAndCredentializes()
         {
-            Operations operations = new Operations(username, password);
-
             Assert.IsTrue(operations.Init());
 
             var credentials = operations.ftp.Credentials.GetCredential(null, "");
@@ -59,31 +72,54 @@ namespace CsharpFTPExampleTests
             Assert.IsTrue(operations.ftp is WebClient);
         }
 
+        // Upload
+
         [TestMethod]
-        public void Upload_IncorrectCode_ts()
+        public void Upload_BadStatusCode_SplitFileNameIsUploaded()
         {
-            Mock<IWebClient> mock = new Mock<IWebClient>();
-            mock.Setup(m => m.UploadFile("ftp://localhost:21/import_TestKey_splitfile_config/test.csv", "STOR", file));
+            var ftpMessage = "500 The command was not accepted.";
+            mockWebClient.Setup(m => m.UploadFile(null, null));
+            mockOperations.Setup(m => m.GetStatusDescription(client)).Returns(new Tuple<int, string>(500, ftpMessage));
 
-            Operations operations = new Operations(username, password);
             operations.Init();
+            operations.ftp = client;
 
-            operations.ftp = mock.Object;
+            Assert.AreEqual(operations.Upload(file), new Tuple<bool, string>(false, "Failed to extract filename from: " + ftpMessage));
+            Assert.AreEqual(operations.uploadFileName, null);
+        }
 
-            operations.Upload(file);
+        [TestMethod]
+        public void Upload_SplitFile_SplitFileNameIsUploaded()
+        {
+            var ftpMessage = "226 closing data connection; File upload success; source.csv";
+            mockWebClient.Setup(m => m.UploadFile("ftp://bacon:9871/import_TestKey_splitfile_config/test.csv", file));
+            mockOperations.Setup(m => m.GetStatusDescription(client)).Returns(new Tuple<int, string>(226, ftpMessage));
 
-            mock.Verify(m => m.UploadFile("ftp://localhost:21/import_TestKey_splitfile_config/test.csv", "STOR", file), Times.Once());
-            //mock.VerifyAll();
+            operations.Init();
+            operations.ftp = client;
 
-            //IWebClient mock = Mock.Of<IWebClient>(l =>
-            //    l.UploadFile("ftp://bacon:21/import_TestKey_splitfile_config/test.csv", "STOR", file) == new byte[] {});
+            Assert.AreEqual(operations.Upload(file), new Tuple<bool, string>(true, "test.csv has been uploaded as source.csv"));
 
-            //mock.Object;
+            mockWebClient.VerifyAll();
+            mockOperations.VerifyAll();
+            Assert.AreEqual(operations.uploadFileName, "source.csv");
+        }
 
-            //Operations operations = new Operations(username, password);
-            //operations.init(new WrappedWebClient());
+        [TestMethod]
+        public void Upload_SingleFile_SingleFileNameIsUploaded()
+        {
+            var ftpMessage = "226 closing data connection; File upload success; source.csv";
+            mockWebClient.Setup(m => m.UploadFile("ftp://bacon:9871/import_TestKey_default_config/test.csv", file));
+            mockOperations.Setup(m => m.GetStatusDescription(client)).Returns(new Tuple<int, string>(226, ftpMessage));
 
-            //operations.upload(file);
+            operations.Init();
+            operations.ftp = client;
+
+            Assert.AreEqual(operations.Upload(file, true), new Tuple<bool, string>(true, "test.csv has been uploaded as source.csv"));
+
+            mockWebClient.VerifyAll();
+            mockOperations.VerifyAll();
+            Assert.AreEqual(operations.uploadFileName, "source.csv");
         }
     }
 }
