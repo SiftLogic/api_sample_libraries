@@ -14,7 +14,6 @@ zip-node:
 	zip -r node . -i node/\*.js -i node/README.md -i node/package.json && zip -r node -d node/node_modules/\*
 
 zip-php:
-	zip -r php . -i php/patched_pemftp/\* -i php/\* -i php/README/\* -i php/composer.json -i php/composer.phar
-	zip -r php -d php/vendor/\*
+	zip -r php.zip ./test_data.csv ./php -x "php/vendor/*"
 
 zip-all: zip-node zip-php
