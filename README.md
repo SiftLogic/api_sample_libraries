@@ -3,7 +3,7 @@ SiftLogic FTP APIs
 
 Each implementation is contained within an evironment folder which describes the implementation in more detail. Currently, there are 6 planned environments:
 
-* .Net
+* .Net (no linux run, see dotnet/README.md) ✔
 * Java
 * Node.js (<code>make run-node</code>) ✔
 * PHP (<code>make run-php</code>) ✔
