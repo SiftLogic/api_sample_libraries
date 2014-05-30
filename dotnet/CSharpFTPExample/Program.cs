@@ -102,6 +102,11 @@ namespace CSharpFTPExample
                 Console.WriteLine("Downloading file, press Enter any time to quit before downloading...");
                 Console.ReadLine();
             }
+            else
+            {
+                Console.WriteLine("Press Enter to close this program...");
+                Console.ReadLine();
+            }
         }
     }
 }

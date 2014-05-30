@@ -21,7 +21,7 @@ There is no installation step as all necessary files have been included.
 * **Load the solution into Visual Studio:** Open CSharpFTPExample\CSharpFTPExample.sln
 * **Run the example:** With the solution open, click the start button
  * To configure command line options click on the CSharpFTPExample example properties->Debug->Edit Start Options
-* **Run the tests:** With the solution open, TEST->Run->All Tests
+* **Run the tests:** With the solution open, TEST->Run->All Tests. Make sure to build (F7) first.
  * Note only with tests there may be an error: "NuGet Package restore failed for project Miscellaneous Files: Value cannot be null or an empty string. Parameter name: root." This is a NuGet configuration issue and is not a testing error.
 
 Building
