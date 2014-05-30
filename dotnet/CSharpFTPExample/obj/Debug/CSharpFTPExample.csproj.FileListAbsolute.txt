@@ -5,3 +5,4 @@ C:\Users\IEUser\api_sample_libraries\dotnet\CSharpFTPExample\bin\Debug\CommandLi
 C:\Users\IEUser\api_sample_libraries\dotnet\CSharpFTPExample\bin\Debug\CommandLine.xml
 C:\Users\IEUser\api_sample_libraries\dotnet\CSharpFTPExample\obj\Debug\CSharpFTPExample.exe
 C:\Users\IEUser\api_sample_libraries\dotnet\CSharpFTPExample\obj\Debug\CSharpFTPExample.pdb
+C:\Users\IEUser\api_sample_libraries\dotnet\CSharpFTPExample\obj\Debug\CSharpFTPExample.csprojResolveAssemblyReference.cache

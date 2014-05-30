@@ -4,6 +4,8 @@ using System.Collections.Specialized;
 using System.Net;
 using System.IO;
 using System.Reflection;
+using System.Text.RegularExpressions;
+using System.Timers;
 
 namespace CSharpFTPExample
 {
@@ -18,9 +20,9 @@ namespace CSharpFTPExample
         private string host;
         private int port;
 
-        public string uploadFileName = null;
+        public string uploadFileName;
         public int pollEvery;
-        public IWebClient ftp = null;
+        public IWebClient ftp;
 
         /// <summary>
         /// The constructor adds properties to the object which are used in init.
@@ -79,15 +81,90 @@ namespace CSharpFTPExample
                     return new Tuple<bool, string>(false, "Failed to extract filename from: " + status.Item2);
                 }
             }
-            catch (Exception exception)
+            catch (WebException exception)
             {
-                return new Tuple<bool, string>(false, exception.Message);
+                return new Tuple<bool, string>(false, ((FtpWebResponse)exception.Response).StatusDescription);
+            }
+        }
+
+        /// <summary>
+        /// Polls every pollEvery seconds until the last uploaded file can be downloaded. Then downloads.
+        /// Note: This must use FTPWebRequest (which is cumbersome), because WebClient does not support FTP listings.
+        /// <param name="location">The location of the file to upload.</param>
+        /// <param name="callback">Called once the file downloads or there is an error. Called with:
+        ///   noError: If an error occured.
+        ///   message: Message returned, will never be empty.
+        /// </param>
+        /// </summary>
+        public virtual void Download(string location, Action<bool, string> callback)
+        {
+            var formatted = GetDownloadFileName();
+            var result = GetDirectoryListing();
+            if (!result.Item1)
+            {
+                callback(false, result.Item2);
+            }
+
+            if (result.Item2.IndexOf(formatted) > -1)
+            {
+                callback(true, formatted + " downloaded to " + location);
+            }
+
+            WaitAndDownload(formatted, new Timer(pollEvery * 1000), delegate()
+            {
+                Download(location, callback);
+            });
+        }
+
+        /// <summary>
+        /// Waits the specified amount of time then calls Download again. Does not pause execution on the current thread.
+        /// <param name="file">The file name being waited on</param>
+        /// <param name="timer">A timer instance with the interval time already set</param>
+        /// <param name="callback">Called once the wait is over. No parameters.</param>
+        /// </summary>
+        public virtual void WaitAndDownload(string file, Timer timer, Action callback)
+        {
+            Console.WriteLine("Waiting for results file " + file);
+
+            timer.Elapsed += (s_, e_) => callback();
+            timer.AutoReset = false;
+            timer.Start();
+        }
+
+        /// <summary>
+        /// Instead of implementing multiple complex interfaces directly into the code base it is easier to just stub out this.
+        /// Unfortunately, then this code must remain untested. Microsoft should have made System.Net more testable...
+        /// <value>>A Tuple in the form (<listing succeeded>, <message></value>
+        /// </summary>
+        public virtual Tuple<bool, string> GetDirectoryListing()
+        {
+            try
+            {
+                var request = (FtpWebRequest)WebRequest.Create("ftp://" + host + ':' + port + "/complete");
+                request.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
+                request.Credentials = ftp.Credentials;
+
+                FtpWebResponse response = (FtpWebResponse)request.GetResponse();
+
+                Stream responseStream = response.GetResponseStream();
+                StreamReader reader = new StreamReader(responseStream);
+
+                var listing = reader.ReadToEnd();
+
+                reader.Close();
+                response.Close();
+
+                return new Tuple<bool, string>(true, listing);
+            }
+            catch (WebException exception)
+            {
+                return new Tuple<bool, string>(false, ((FtpWebResponse)exception.Response).StatusDescription);
             }
         }
 
         /// <summary>
         /// Returns
-        /// <value>an ordered dictionary of the username, password, host and port.</value>
+        /// <value>An ordered dictionary of the username, password, host and port.</value>
         /// </summary>
         public OrderedDictionary GetConnectionDetails()
         {
@@ -98,6 +175,26 @@ namespace CSharpFTPExample
             dictionary.Add("port", port);
 
             return dictionary;
+        }
+
+        /// <summary>
+        /// Retrieves the upload file name and transforms it to the download one.
+        /// <value>The current download name of the current upload.</value>
+        /// </summary>
+        public virtual string GetDownloadFileName()
+        {
+            if (string.IsNullOrEmpty(uploadFileName))
+            {
+                return uploadFileName;
+            }
+
+            var formatted = new Regex("source_").Replace(uploadFileName, "archive_", 1);
+            if(formatted.IndexOf(".csv") > -1 || formatted.IndexOf(".txt") > -1)
+            {
+                formatted = formatted.Remove(formatted.Length - 4) + ".zip";
+            }
+
+            return formatted;
         }
 
         /// <summary>
@@ -119,11 +216,11 @@ namespace CSharpFTPExample
                 }
                 else
                 {
-                    throw new Exception("Could not get the status code and description from the server.");
+                    throw new WebException("Could not get the status code and description from the server.");
                 }
             }
 
-            throw new Exception("Could not get the response field from the server.");
+            throw new WebException("Could not get the response field from the server.");
         }
     }
 }

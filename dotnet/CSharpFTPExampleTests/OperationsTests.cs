@@ -1,12 +1,15 @@
 ﻿using System;
+using System.Threading;
+using System.IO;
+using System.Collections;
+using System.Collections.Specialized;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using CSharpFTPExample;
 using System.Net;
-using System.Collections;
-using System.Collections.Specialized;
 using Moq;
+using Moq.Protected;
 
-namespace CsharpFTPExampleTests
+namespace CSharpFTPExampleTests
 {
     [TestClass]
     public class OperationsTests
@@ -23,6 +26,8 @@ namespace CsharpFTPExampleTests
         private int pollEvery = 1;
 
         private string file = @"C:\WINDOWS\Temp\test.csv";
+
+        private AutoResetEvent resetEvent;
 
         [TestInitialize]
         public void Setup()
@@ -121,6 +126,121 @@ namespace CsharpFTPExampleTests
             mockOperations.VerifyAll();
             Assert.AreEqual(operations.uploadFileName, "source.csv");
         }
+
+        // GetDownloadFileName
+
+        [TestMethod]
+        public void GetDownloadFileName_NoModify_ReturnsSentIn()
+        {
+            var operations = new Operations(username, password);
+
+            Assert.AreEqual(operations.GetDownloadFileName(), operations.uploadFileName);
+
+            operations.uploadFileName = "";
+            Assert.AreEqual(operations.GetDownloadFileName(), "");
+
+            operations.uploadFileName = "test_test.doc";
+            Assert.AreEqual(operations.GetDownloadFileName(), "test_test.doc");
+        }
+
+        [TestMethod]
+        public void GetDownloadFileName_Modify_ReturnsModified()
+        {
+            var operations = new Operations(username, password);
+
+            operations.uploadFileName = "source_test.doc";
+            Assert.AreEqual(operations.GetDownloadFileName(), "archive_test.doc");
+
+            operations.uploadFileName = "source_source_test.csv.csv";
+            Assert.AreEqual(operations.GetDownloadFileName(), "archive_source_test.csv.zip");
+
+            operations.uploadFileName = "source_source_test.txt.txt";
+            Assert.AreEqual(operations.GetDownloadFileName(), "archive_source_test.txt.zip");
+
+            operations.uploadFileName = "source_source_test.csv.txt";
+            Assert.AreEqual(operations.GetDownloadFileName(), "archive_source_test.csv.zip");
+        }
+
+        // Download
+
+        [TestMethod]
+        public void Download_ListingErrors_DownloadListError()
+        {
+            mockOperations.Setup(m => m.GetDownloadFileName()).Returns("test.csv");
+            mockOperations.Setup(m => m.GetDirectoryListing()).Returns(new Tuple<bool, string>(false, "error"));
+            mockOperations.CallBase = true;
+ 
+            this.resetEvent = new AutoResetEvent(false);
+
+            operations.Download("test.csv", delegate(bool isError, string message)
+            {
+                Assert.IsFalse(isError);
+                Assert.AreEqual(message, "error");
+                this.resetEvent.Set();
+            });
+
+            Assert.IsTrue(this.resetEvent.WaitOne());
+            mockOperations.VerifyAll();
+        }
+
+        [TestMethod]
+        public void Download_ListingDoesNotContainFile_CallsWaitForDownload()
+        {
+            mockOperations.Setup(m => m.GetDownloadFileName()).Returns("test.csv");
+            mockOperations.Setup(m => m.GetDirectoryListing()).Returns(new Tuple<bool, string>(true, "not here"));
+            mockOperations.Setup(m => m.WaitAndDownload("test.csv", It.IsAny<System.Timers.Timer>(), It.IsAny<Action>()))
+                          .Callback((string name, System.Timers.Timer timer, Action callback) =>
+                          {
+                              mockOperations.Setup(m => m.Download("test.csv", It.IsAny<Action<bool, string>>()));
+
+                              Assert.AreEqual(name, "test.csv");
+                              Assert.AreEqual(timer.Interval, pollEvery * 1000);
+
+                              callback();
+
+                              mockOperations.Verify(m => m.Download("test.csv", It.IsAny<Action<bool, string>>()));
+                          });
+            mockOperations.CallBase = true;
+
+            operations.Download("test.csv", delegate(bool isError, string message) {});
+
+            mockOperations.Verify(m => m.GetDownloadFileName());
+            mockOperations.Setup(m => m.GetDirectoryListing());
+        }
+
+        // WaitsForDownload
+
+        [TestMethod]
+        public void WaitsForDownload_Default_PrintsSleepsAndCreatesTimer()
+        {
+            var time = 2;
+            Mock<System.Timers.Timer> mockTimer = new Mock<System.Timers.Timer>(time * 1000);
+
+            using (StringWriter sw = new StringWriter())
+            {
+                Console.SetOut(sw);
+
+                var callCount = 0;
+                mockOperations.CallBase = true;
+                operations.WaitAndDownload("test.csv", mockTimer.Object, delegate()
+                {
+                    callCount += 1;
+                });
+
+                Assert.AreEqual("Waiting for results file test.csv", sw.ToString().Trim());
+            }
+
+            // Unfortunately, short of defining a new timer interface for the main code base, this is the most I can test.
+            mockTimer.Object.Stop();
+            Assert.AreEqual(mockTimer.Object.AutoReset, false);
+            mockTimer.VerifyAll();
+
+            // Restore the Console
+            StreamWriter standardOut = new StreamWriter(Console.OpenStandardOutput());
+            standardOut.AutoFlush = true;
+            Console.SetOut(standardOut);
+        }
+
     }
 }
 

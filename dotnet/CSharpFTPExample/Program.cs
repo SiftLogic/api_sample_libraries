@@ -98,9 +98,21 @@ namespace CSharpFTPExample
                     throw new Exception(result.Item2);
                 }
                 Console.WriteLine(result.Item2);
+
+                operations.Download(opts.Location, delegate(bool noError, string message)
+                {
+                    if (!noError)
+                    {
+                        throw new Exception(message);
+                    }
+                    Console.WriteLine(message);
+
+                    Console.WriteLine("Press Enter to close this program...");
+                    Console.ReadLine();
+                });
             }
 
-            Console.WriteLine("Press Enter to close this program...");
+            Console.WriteLine("Downloading file, press enter any time to quit before downloading...");
             Console.ReadLine();
         }
     }
