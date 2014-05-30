@@ -52,3 +52,7 @@ node_modules
 ###
 
 php/vendor
+
+##
+# .Net ignore in the dotnet directory
+###
