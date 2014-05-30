@@ -83,7 +83,11 @@ namespace CSharpFTPExample
             }
             catch (WebException exception)
             {
-                return new Tuple<bool, string>(false, ((FtpWebResponse)exception.Response).StatusDescription);
+                if (exception.Response != null)
+                {
+                    return new Tuple<bool, string>(false, ((FtpWebResponse)exception.Response).StatusDescription);
+                }
+                return new Tuple<bool, string>(false, exception.Message);
             }
         }
 

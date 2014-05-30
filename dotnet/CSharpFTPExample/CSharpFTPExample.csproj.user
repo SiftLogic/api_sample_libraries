@@ -3,4 +3,17 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <StartArguments>-f C:\Users\IEUser\api_sample_libraries\test_data.csv -l C:\Users\IEUser\Desktop -k TestKey -p 733df10f-f362-44a0-8d5b-212e408bb2bc --host bacon --poll 2 --singleFile true</StartArguments>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <StartArguments>-f C:\Users\IEUser\api_sample_libraries\test_data.csv -l C:\Users\IEUser\Desktop -k TestKey -p 733df10f-f362-44a0-8d5b-212e408bb2bc --host bacon --poll 2</StartArguments>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PublishUrlHistory>C:\Users\IEUser\Desktop\test\</PublishUrlHistory>
+    <InstallUrlHistory />
+    <SupportUrlHistory />
+    <UpdateUrlHistory />
+    <BootstrapperUrlHistory />
+    <ErrorReportUrlHistory />
+    <FallbackCulture>en-US</FallbackCulture>
+    <VerifyUploadedFiles>false</VerifyUploadedFiles>
+  </PropertyGroup>
 </Project>

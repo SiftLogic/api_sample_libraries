@@ -1,6 +1,8 @@
 # Example runs that assume you are on a unix machine and you have a specific folder layout and login details.
 .PHONY: run-node run-php
 
+# dotnet e.g.: dotnet\CSharpFTPExample\bin\Release\CSharpFTPExample.exe -f dotnet\test.csv -l C:\Users\IEUser\Desktop -k TestKey -p 733df10f-f362-44a0-8d5b-212e408bb2bc --poll 2 --host bacon
+
 run-node:
 	./node/main.js -f /opt/api_sample_libraries/test_data.csv -l "${HOME}/Desktop/" -k TestKey -p e261742d-fe2f-4569-95e6-312689d04903 --poll 2
 

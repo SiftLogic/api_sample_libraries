@@ -14,7 +14,7 @@ namespace CSharpFTPExample
     {
         // Required
         [Option('f', Required = true,
-          HelpText = "The absolute file path of the upload file")]
+          HelpText = "The file path of the upload file")]
         public string File { get; set; }
 
         [Option('l', Required = true,
@@ -77,18 +77,6 @@ namespace CSharpFTPExample
             var opts = new Options();
             if (CommandLine.Parser.Default.ParseArguments(args, opts))
             {
-                // Required
-                Console.WriteLine("File: {0}", opts.File);
-                Console.WriteLine("Location: {0}", opts.Location);
-                Console.WriteLine("Key: {0}", opts.Key);
-                Console.WriteLine("Password: {0}", opts.Password);
-
-                // Optional
-                Console.WriteLine("Poll: {0}", opts.Poll);
-                Console.WriteLine("Host: {0}", opts.Host);
-                Console.WriteLine("Port: {0}", opts.Port);
-                Console.WriteLine("singleFile: {0}", opts.SingleFile);
-
                 Operations operations = new Operations(opts.Key, opts.Password, opts.Host, opts.Port, opts.Poll);
                 operations.Init();
 
@@ -110,10 +98,10 @@ namespace CSharpFTPExample
                     Console.WriteLine("Press Enter to close this program...");
                     Console.ReadLine();
                 });
-            }
 
-            Console.WriteLine("Downloading file, press enter any time to quit before downloading...");
-            Console.ReadLine();
+                Console.WriteLine("Downloading file, press Enter any time to quit before downloading...");
+                Console.ReadLine();
+            }
         }
     }
 }
