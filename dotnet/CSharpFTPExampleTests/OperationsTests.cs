@@ -26,6 +26,7 @@ namespace CSharpFTPExampleTests
         private int pollEvery = 1;
 
         private string file = @"C:\WINDOWS\Temp\test.csv";
+        private string directory;
 
         private AutoResetEvent resetEvent;
 
@@ -37,6 +38,8 @@ namespace CSharpFTPExampleTests
 
             mockWebClient = new Mock<IWebClient>();
             client = mockWebClient.Object;
+
+            directory = "ftp://" + host + ':' + port + "/complete";
         }
 
         [TestMethod]
@@ -167,18 +170,22 @@ namespace CSharpFTPExampleTests
         public void Download_ListingErrors_DownloadListError()
         {
             mockOperations.Setup(m => m.GetDownloadFileName()).Returns("test.csv");
-            mockOperations.Setup(m => m.GetDirectoryListing()).Returns(new Tuple<bool, string>(false, "error"));
+            mockOperations.Setup(m => m.GetDirectoryListing(directory)).Returns(new Tuple<bool, string>(false, "error"));
             mockOperations.CallBase = true;
  
+            // Setup waiting
             this.resetEvent = new AutoResetEvent(false);
 
-            operations.Download("test.csv", delegate(bool isError, string message)
+            operations.Download("test.csv", delegate(bool noError, string message)
             {
-                Assert.IsFalse(isError);
+                Assert.IsFalse(noError);
                 Assert.AreEqual(message, "error");
+
+                // Stop waiting
                 this.resetEvent.Set();
             });
 
+            // Do not pass this statement until the waiting is done
             Assert.IsTrue(this.resetEvent.WaitOne());
             mockOperations.VerifyAll();
         }
@@ -187,7 +194,7 @@ namespace CSharpFTPExampleTests
         public void Download_ListingDoesNotContainFile_CallsWaitForDownload()
         {
             mockOperations.Setup(m => m.GetDownloadFileName()).Returns("test.csv");
-            mockOperations.Setup(m => m.GetDirectoryListing()).Returns(new Tuple<bool, string>(true, "not here"));
+            mockOperations.Setup(m => m.GetDirectoryListing(directory)).Returns(new Tuple<bool, string>(true, "not here"));
             mockOperations.Setup(m => m.WaitAndDownload("test.csv", It.IsAny<System.Timers.Timer>(), It.IsAny<Action>()))
                           .Callback((string name, System.Timers.Timer timer, Action callback) =>
                           {
@@ -202,10 +209,43 @@ namespace CSharpFTPExampleTests
                           });
             mockOperations.CallBase = true;
 
-            operations.Download("test.csv", delegate(bool isError, string message) {});
+            operations.Download("test.csv", delegate(bool noError, string message) { });
 
-            mockOperations.Verify(m => m.GetDownloadFileName());
-            mockOperations.Setup(m => m.GetDirectoryListing());
+            mockOperations.VerifyAll();
+        }
+
+        [TestMethod]
+        public void Download_ListingDoesContainFile_DownloadsFile()
+        {
+            var location = @"C:\WINDOWS\";
+            var fileName = "test.csv";
+            var listing = @"
+                 -rw-r---- 1000 test1.csv\n
+                 -rw-r---- 1000 test.csv\n
+                 -rw-r---- 1000 test2.csv\n
+                 -rw-r---- 1000 test3.csv\n
+            ";
+
+            mockOperations.Setup(m => m.GetDownloadFileName()).Returns(fileName);
+            mockOperations.Setup(m => m.GetDirectoryListing(directory)).Returns(new Tuple<bool, string>(true, listing));
+            mockOperations.CallBase = true;
+
+            this.resetEvent = new AutoResetEvent(false);
+
+            mockWebClient.Setup(m => m.DownloadFile(directory + "/" + fileName, location + "/" + fileName));
+            operations.Init();
+            operations.ftp = client;
+
+            operations.Download(@"C:\WINDOWS\", delegate(bool noError, string message)
+            {
+                Assert.IsTrue(noError);
+                Assert.AreEqual(message, fileName + @" downloaded to C:\WINDOWS\");
+
+                this.resetEvent.Set();
+            });
+
+            Assert.IsTrue(this.resetEvent.WaitOne());
+            mockOperations.VerifyAll();
         }
 
         // WaitsForDownload

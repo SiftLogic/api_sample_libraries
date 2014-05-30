@@ -98,22 +98,37 @@ namespace CSharpFTPExample
         /// </summary>
         public virtual void Download(string location, Action<bool, string> callback)
         {
+            var directory = "ftp://" + host + ':' + port + "/complete";
             var formatted = GetDownloadFileName();
-            var result = GetDirectoryListing();
+            var result = GetDirectoryListing(directory);
+
             if (!result.Item1)
             {
                 callback(false, result.Item2);
             }
-
-            if (result.Item2.IndexOf(formatted) > -1)
+            else if (result.Item2.IndexOf(formatted) > -1)
             {
-                callback(true, formatted + " downloaded to " + location);
+                try
+                {
+                    ftp.DownloadFile(directory + "/" + formatted, location + "/" + formatted);
+                    callback(true, formatted + " downloaded to " + location);
+                }
+                catch (WebException exception)
+                {
+                    if (exception.Response != null)
+                    {
+                        callback(false, ((FtpWebResponse)exception.Response).StatusDescription);
+                    }
+                    callback(false,"The download location probably cannot be accessed. Full error message:" + exception.Message);
+                }
             }
-
-            WaitAndDownload(formatted, new Timer(pollEvery * 1000), delegate()
+            else
             {
-                Download(location, callback);
-            });
+                WaitAndDownload(formatted, new Timer(pollEvery * 1000), delegate()
+                {
+                    Download(location, callback);
+                });
+            }
         }
 
         /// <summary>
@@ -133,14 +148,15 @@ namespace CSharpFTPExample
 
         /// <summary>
         /// Instead of implementing multiple complex interfaces directly into the code base it is easier to just stub out this.
-        /// Unfortunately, then this code must remain untested. Microsoft should have made System.Net more testable...
-        /// <value>>A Tuple in the form (<listing succeeded>, <message></value>
+        /// Unfortunately, then this code must remain untested.
+        /// <param name="location">Full url of the location to list e.g. ftp://bacon:5894/complete </param>
+        /// <value>>A Tuple in the form (<listing succeeded>, <message>)</value>
         /// </summary>
-        public virtual Tuple<bool, string> GetDirectoryListing()
+        public virtual Tuple<bool, string> GetDirectoryListing(string location)
         {
             try
             {
-                var request = (FtpWebRequest)WebRequest.Create("ftp://" + host + ':' + port + "/complete");
+                var request = (FtpWebRequest)WebRequest.Create(location);
                 request.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
                 request.Credentials = ftp.Credentials;
 
