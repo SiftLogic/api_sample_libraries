@@ -48,18 +48,18 @@ if (!empty($argv['k'])){
   $operations->init();
 
   // Upload the file.
-  $message = $operations->upload($argv['f'], $argv['singleFile']);
-  if (!$message[0]){
-    throw new RuntimeException($message[1]);
+  list($err, $message) = $operations->upload($argv['f'], $argv['singleFile']);
+  if (!$err){
+    throw new RuntimeException($message);
   }
-  echo($message[1]);
+  echo($message);
 
   // Download when it is done.
-  $message = $operations->download($argv['l']);
-  if (!$message[0]){
-    throw new RuntimeException($message[1]);
+  list($err, $message) = $operations->download($argv['l']);
+  if (!$err){
+    throw new RuntimeException($message);
   }
-  echo($message[1]);
+  echo($message);
 
   // Always close the FTP connection properly once done with it.
   $operations->quit();
