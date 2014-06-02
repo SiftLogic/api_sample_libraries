@@ -10,7 +10,7 @@ class Operations
   private $host;
   private $port;
   
-  public $uploadedFileName;// Set on upload
+  public $uploadFileName;// Set on upload
   public $pollEvery;
   public $ftp;
 
@@ -102,7 +102,7 @@ class Operations
     if($this->ftp->put($formatted, "$dir/$formatted")) {
       $response_message = $this->ftp->last_message();
       if (preg_match("/.* (.*)$/", $response_message, $parsed)) {
-        $this->uploadedFileName = trim($parsed[1]);
+        $this->uploadFileName = trim($parsed[1]);
 
         return array(TRUE, "$formatted has been uploaded as {$parsed[1]}\n");
       } else {
@@ -118,6 +118,7 @@ class Operations
    * Polls every pollEvery seconds until the last uploaded file can be downloaded. Then downloads.
    *
    * @param (location) The absolute location to download the file to.
+   * @param (self) A new version of this class to use. Defaults to $this. (For testing purposes)
    *
    * @return An array [<download succeeded>, <message>].
    */
@@ -154,20 +155,33 @@ class Operations
    * @param (time) The time in seconds to sleep for.
    * @param (file) The filename to download. Just need the filename, no path.
    * @param (location) The absolute location to download the file to.
+   * @param (self) A new version of this class to use. Defaults to $this. (For testing purposes)
+   *
+   * @return Result of running downloads again.
    */
-  public function waitAndDownload($time, $file, $location)
+  public function waitAndDownload($time, $file, $location, $self = '')
   {
-    echo("Waiting for results file $file ...\n");
+    // So that echoAndSleep can be stubbed in the tests
+    if(empty($self)){
+      $self = $this;
+    }
 
-    sleep($time);
+    $self->echoAndSleep("Waiting for results file $file ...\n", $time);
 
     // We could have been kicked off due to inactivity...
-    $this->ftp->quit();
-    if (!$this->init()){
+    $self->ftp->quit();
+    if (!$self->init()){
       return array(FALSE, "Could not reconnect to the server.\n");
     }
 
-    return $this->download($location);
+    return $self->download($location);
+  }
+
+  // (so echo and sleep can be stubbed)
+  public function echoAndSleep($message, $time)
+  {
+    echo($message);
+    sleep($time);
   }
 
   /**
@@ -201,11 +215,11 @@ class Operations
    */
   public function getDownloadFileName()
   {
-    if (empty($this->uploadedFileName)){
-      return $this->uploadedFileName;
+    if (empty($this->uploadFileName)){
+      return $this->uploadFileName;
     }
 
-    $formatted = preg_replace('/source_/', 'archive_', $this->uploadedFileName, 1);
+    $formatted = preg_replace('/source_/', 'archive_', $this->uploadFileName, 1);
 
     if (strpos($formatted, '.csv') || strpos($formatted, '.txt')){
       $formatted = substr($formatted, 0, -4) .'.zip';

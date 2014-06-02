@@ -230,32 +230,32 @@ class OperationsTest extends PHPUnit_Framework_TestCase
 
     $message = "test.csv has been uploaded as {$lastMessage[2]}\n";
     $this->assertEquals($this->operations->upload('test.csv'), array(TRUE, $message));
-    $this->assertEquals($this->operations->uploadedFileName, $lastMessage[2]);
+    $this->assertEquals($this->operations->uploadFileName, $lastMessage[2]);
   }
 
   // getDownloadFileName
 
   public function testGetDownloadFileNameNoModify()
   {
-    $this->operations->uploadedFileName = '';
+    $this->operations->uploadFileName = '';
     $this->assertEquals($this->operations->getDownloadFileName(), '');
 
-    $this->operations->uploadedFileName = 'test_test.doc';
+    $this->operations->uploadFileName = 'test_test.doc';
     $this->assertEquals($this->operations->getDownloadFileName(), 'test_test.doc');
   }
 
   public function testToDownloadFormatModify()
   {
-    $this->operations->uploadedFileName = 'source_test.doc';
+    $this->operations->uploadFileName = 'source_test.doc';
     $this->assertEquals($this->operations->getDownloadFileName(), 'archive_test.doc');
     
-    $this->operations->uploadedFileName = 'source_source_test.csv.csv';
+    $this->operations->uploadFileName = 'source_source_test.csv.csv';
     $this->assertEquals($this->operations->getDownloadFileName(), 'archive_source_test.csv.zip');
 
-    $this->operations->uploadedFileName = 'source_source_test.txt.txt';
+    $this->operations->uploadFileName = 'source_source_test.txt.txt';
     $this->assertEquals($this->operations->getDownloadFileName(), 'archive_source_test.txt.zip');
 
-    $this->operations->uploadedFileName = 'source_source_test.csv.txt';
+    $this->operations->uploadFileName = 'source_source_test.csv.txt';
     $this->assertEquals($this->operations->getDownloadFileName(), 'archive_source_test.csv.zip');
   }
 
@@ -331,6 +331,68 @@ class OperationsTest extends PHPUnit_Framework_TestCase
 
     $message = "$formatted downloaded to $location.\n";
     $this->assertEquals($this->operations->download($location), array(TRUE, $message));
+  }
+
+  // waitAndDownload
+
+  private function setupWaitAndDownload($mockDownload = FALSE, $mockInit = FALSE)
+  {
+    $ftpStub = $this->stubObjectWithOnce('Ftp', array(
+      "quit" => TRUE
+    ));
+
+    $this->operations = new Operations($ftpStub, $this->username, $this->password);
+
+    $operationsStub = $this->getMock('Operations', array('echoAndSleep', 'download', 'init'),
+      array($ftpStub, $this->username, $this->password));
+    $operationsStub->expects($this->once())
+                   ->method('echoAndSleep');
+    if ($mockDownload){
+      $operationsStub->expects($this->once())
+                     ->method('download');
+    }
+    if ($mockInit){
+      $operationsStub->expects($this->once())
+                     ->method('init')
+                     ->will($this->returnValue(TRUE));
+    }
+
+    return $operationsStub;
+  }
+
+  public function testWaitAndDownloadPrintsAndSleeps()
+  {
+    $stub = $this->setupWaitAndDownload(TRUE, TRUE);
+    $stub->expects($this->once())
+         ->method('echoAndSleep')
+         ->with("Waiting for results file test.csv ...\n", 1000);
+
+    $this->operations->waitAndDownload(1000, 'test.csv', '/tmp', $stub);
+  }
+
+  public function testWaitAndDownloadReturnsFalseOnNoReconnect()
+  {
+    $stub = $this->setupWaitAndDownload();
+    $stub->expects($this->once())
+         ->method('init')
+         ->will($this->returnValue(FALSE));
+    $stub->expects($this->never())
+         ->method('download');
+
+    $result = $this->operations->waitAndDownload(1000, 'test.csv', '/tmp', $stub);
+    $this->assertEquals($result, array(FALSE, "Could not reconnect to the server.\n"));
+  }
+
+  public function testWaitAndDownloadReturnsDownload()
+  {
+    $stub = $this->setupWaitAndDownload(FALSE, TRUE);
+    $stub->expects($this->once())
+         ->method('download')
+         ->with('/tmp')
+         ->will($this->returnValue(array(TRUE, 'test message')));
+
+    $result = $this->operations->waitAndDownload(1000, 'test.csv', '/tmp', $stub);
+    $this->assertEquals($result, array(TRUE, 'test message'));
   }
 
   // quit
