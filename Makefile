@@ -17,7 +17,7 @@ zip-dotnet:
 	zip -r dotnet dotnet -x "dotnet/.gitignore"
 
 zip-node:
-	zip -r node . -i node/\*.js -i node/README.md -i node/package.json && zip -r node -d node/node_modules/\*
+	zip -r node . -i node/\*.js -i node/README.md -i node/package.json -x node/node_modules/\*
 
 zip-php:
 	zip -r php.zip ./test_data.csv ./php -x "php/vendor/*"
