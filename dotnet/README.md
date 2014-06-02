@@ -15,9 +15,9 @@ It is recommended to include the Operations file and use the methods in there to
 Quick Start
 ===========
 
-There is no installation step as all necessary files have been included.
+There is no installation step as all necessary files have been included. Although the solution needs to be built (F7) in Visual Studio.
 
-* **Run a the EXE on a CLI:** <code>CSharpFTPExample\bin\Release\CSharpFTPExample.exe</code>
+* **Run the EXE on a CLI:** <code>CSharpFTPExample\bin\Release\CSharpFTPExample.exe</code> *The solution must be built for release mode to do this*
 * **Load the solution into Visual Studio:** Open CSharpFTPExample\CSharpFTPExample.sln
 * **Run the example:** With the solution open, click the start button
  * To configure command line options click on the CSharpFTPExample example properties->Debug->Edit Start Options
