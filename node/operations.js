@@ -19,7 +19,7 @@ module.exports = function(opts) {
     host: opts.host || 'localhost',
     port: opts.port || 21,
 
-    uploadedFileName: null,// Set on upload
+    uploadFileName: null,// Set on upload
     JSFtp: JSFtp,// Make testing what is sent to this possible
     ftp: null,
 
@@ -50,7 +50,7 @@ module.exports = function(opts) {
                    .replace(new RegExp('.txt$'), '.zip');
   };
 
-  // Calls the callback once the last uploaded file (uploadedFileName) has been loaded or there is 
+  // Calls the callback once the last uploaded file (uploadFileName) has been loaded or there is 
   // an error. Reconnects for every request to deal with the lost connections.
   self.watchUpload = function(callback) {
     // Stop the earlier jsftp_debug listener, it interferes with jsftp's libraries listing operation
@@ -62,7 +62,7 @@ module.exports = function(opts) {
           callback(err);
         }
 
-        var formatted = self.toDownloadFormat(self.uploadedFileName);
+        var formatted = self.toDownloadFormat(self.uploadFileName);
         if (res && res.indexOf(formatted) > -1){
           console.log(formatted, 'found.');
 
@@ -103,7 +103,7 @@ module.exports = function(opts) {
         // File was successfully uploaded
         if (data.code === 226){
           self.ftp.events = function(){};
-          self.uploadedFileName = data.text.split('; ').slice(-1)[0].trim();
+          self.uploadFileName = data.text.split('; ').slice(-1)[0].trim();
 
           callback();
         // A error with the file or backend specifically. e.g. Not enough credits
@@ -115,7 +115,11 @@ module.exports = function(opts) {
 
     var type = (singleFile) ? 'default' : 'splitfile';
     var serverLocation ='/import_' + self.username + '_'+type+'_config/' +filename.split('/').pop();
-    self.ftp.put(filename, serverLocation);
+    self.ftp.put(filename, serverLocation, function(err) {
+      if (err){
+        callback(err);
+      }
+    });
   };
 
   // Polls until the results can be downloaded. Calls the callback once download is complete or on
@@ -127,7 +131,7 @@ module.exports = function(opts) {
       }
       location = location.replace(new RegExp('\/$'), '');// Remove trailing slash if present
 
-      var filename = self.toDownloadFormat(self.uploadedFileName);
+      var filename = self.toDownloadFormat(self.uploadFileName);
       self.ftp.get('/complete/' + filename, location + '/' + filename, callback);
     })
   };

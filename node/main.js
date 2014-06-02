@@ -16,8 +16,8 @@ var argv = require('yargs')
            'Upload test.csv, process it and download the results to /tmp, poll every 10s')
   .demand(['f', 'l', 'k', 'p'])
   .describe({
-    f: 'The absolute file path of the upload file',
-    l: 'The absolute location of where the results file should be placed',
+    f: 'The file path of the upload file',
+    l: 'The location of where the results file should be placed',
     k: 'The key name defined in the manage api keys section',
     p: 'The password defined in the manage api keys section',
     poll: 'The number of seconds to poll for (default 300)',

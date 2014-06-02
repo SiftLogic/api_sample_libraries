@@ -61,7 +61,7 @@ describe('Operations', function() {
     expect(operations.host).to.equal('localhost');
     expect(operations.JSFtp).to.deep.equal(JSFtp);
 
-    expect(operations.uploadedFileName).to.be.null;
+    expect(operations.uploadFileName).to.be.null;
   });
 
   it('should set a custom host and port when specified', function() {
@@ -163,8 +163,17 @@ describe('Operations', function() {
       calledOnceWith(operations.ftp.put, filename, serverLocation);
     });
 
+    it('should call the callback when put fails', function() { 
+      var filename = 'test.csv';
+
+      operations.upload(filename, true, callback);
+      operations.ftp.put.args[0][2]('An error');
+
+      calledOnceWith(callback, 'An error');
+    });
+
     it('should watch jsftp_debug calling the callback only upon getting a file upload message and '+
-       'set the uploadedFileName',
+       'set the uploadFileName',
     function() {
       operations.upload('', null, callback);
 
@@ -185,7 +194,7 @@ describe('Operations', function() {
       });
 
       expect(callback.calledOnce).to.be.true;
-      expect(operations.uploadedFileName).to.equal(file);
+      expect(operations.uploadFileName).to.equal(file);
       expect(operations.ftp.events + '').to.equal('function (){}');// V8 only test
     });
 
@@ -212,7 +221,7 @@ describe('Operations', function() {
       filename = 'test1.csv';
       stub(operations, 'toDownloadFormat').returns(filename);
 
-      operations.uploadedFileName = null;
+      operations.uploadFileName = null;
     });
 
     afterEach(function() {
@@ -234,7 +243,7 @@ describe('Operations', function() {
     describe('list callback', function() {
       it('should print that the data is formatted when the expected file is found and calls ' +
          'the callback and not reConnect', function() {
-        operations.uploadedFileName = filename;
+        operations.uploadFileName = filename;
         operations.watchUpload(callback);
 
         operations.ftp.list.args[0][1](false, 'test0.csv\n' + filename + 'test2.csv');
