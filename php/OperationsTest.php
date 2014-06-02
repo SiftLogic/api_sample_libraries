@@ -1,6 +1,7 @@
 <?php
 require_once 'Operations.php';
 require_once 'patched_pemftp/ftp_class.php';
+require_once 'vendor/autoload.php';
 
 class OperationsTest extends PHPUnit_Framework_TestCase
 {
@@ -9,6 +10,9 @@ class OperationsTest extends PHPUnit_Framework_TestCase
   private $host;
   private $port;
   private $ftp;
+
+  private $root;
+  private $file;
 
   protected function setUp() 
   {
@@ -19,8 +23,18 @@ class OperationsTest extends PHPUnit_Framework_TestCase
     $this->polling = 0.1;
     $this->ftp = new Ftp(FALSE);
 
+    $this->file = 'test.csv';
+
     $this->operations = new Operations($this->ftp, $this->username, $this->password, $this->host, 
                                        $this->port, $this->polling);
+
+    $dir = array();
+    $dir[$this->file] = '';
+
+    $this->root = org\bovigo\vfs\vfsStream::setup('root', null, $dir);
+    // $this->root = org\bovigo\vfs\vfsStream::create(array(
+    //   '/' => $dir
+    // ));
   }
 
   private function stubObjectWithOnce($name, $methods)
@@ -162,9 +176,14 @@ class OperationsTest extends PHPUnit_Framework_TestCase
 
   // upload
 
+  public function testUploadNoFileError() 
+  {
+    $message = "File Upload Error: other.csv does not exist\n";
+    $this->assertEquals($this->operations->upload('other.csv'), array(FALSE, $message));
+  }
+
   public function testUploadFileUploadErrorWithMultiFile() 
   {
-    $file = 'test.csv';
     $dir = "import_{$this->username}_splitfile_config";
 
     $stub = $this->stubObjectWithOnce('Ftp', array(
@@ -174,16 +193,15 @@ class OperationsTest extends PHPUnit_Framework_TestCase
 
     $stub->expects($this->once())
          ->method('put')
-         ->with($file, "$dir/$file");
+         ->with($this->file, "$dir/$this->file");
     $this->operations = new Operations($stub, $this->username, $this->password);
 
-    $message = "\nFile upload error: An Error\n";
-    $this->assertEquals($this->operations->upload($file), array(FALSE, $message));
+    $message = "\nFile Upload Error: An Error\n";
+    $this->assertEquals($this->operations->upload($this->file), array(FALSE, $message));
   }
 
   public function testUploadFileUploadErrorWithSingleFile() 
   {
-    $file = 'test.csv';
     $dir = "import_{$this->username}_default_config";
 
     $stub = $this->stubObjectWithOnce('Ftp', array(
@@ -193,11 +211,11 @@ class OperationsTest extends PHPUnit_Framework_TestCase
 
     $stub->expects($this->once())
          ->method('put')
-         ->with($file, "$dir/$file");
+         ->with($this->file, "$dir/$this->file");
     $this->operations = new Operations($stub, $this->username, $this->password);
 
-    $message = "\nFile upload error: An Error\n";
-    $this->assertEquals($this->operations->upload($file, TRUE), array(FALSE, $message));
+    $message = "\nFile Upload Error: An Error\n";
+    $this->assertEquals($this->operations->upload($this->file, TRUE), array(FALSE, $message));
   }
 
   public function testUploadFileNameExtractionError() 
@@ -209,7 +227,7 @@ class OperationsTest extends PHPUnit_Framework_TestCase
     $this->operations = new Operations($stub, $this->username, $this->password);
 
     $message = "Failed to extract filename from: source_test_data_20140523_0012.csv\n";
-    $this->assertEquals($this->operations->upload(''), array(FALSE, $message));
+    $this->assertEquals($this->operations->upload($this->file), array(FALSE, $message));
   }
 
   public function testUploadSuccess() 
@@ -259,12 +277,12 @@ class OperationsTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($this->operations->getDownloadFileName(), 'archive_source_test.csv.zip');
   }
 
-  // Download
+  // download
 
   public function testDownloadListError()
   {
     $stub = $this->stubObjectWithOnce('Ftp', array(
-      "nlist" => ''
+      "nlist" => FALSE
     ));
     $this->operations = new Operations($stub, $this->username, $this->password);
 
@@ -308,7 +326,7 @@ class OperationsTest extends PHPUnit_Framework_TestCase
 
     $this->operations = new Operations($stub, $this->username, $this->password);
 
-    $message = "\nFile download error: An Error\n";
+    $message = "\nFile Download Error: An Error\n";
     $this->assertEquals($this->operations->download($location), array(FALSE, $message));
   }
 

@@ -22,10 +22,10 @@ $argv->setHelp("" .
   ) 
 ->option('f')
     ->require()
-    ->describedAs('The absolute file path of the upload file')
+    ->describedAs('The file path of the upload file')
 ->option('l')
     ->require()
-    ->describedAs('The absolute location of where the results file should be placed')
+    ->describedAs('The location of where the results file should be placed')
 ->option('k')
     ->require()
     ->describedAs('The key name defined in the manage api keys section')
@@ -39,7 +39,7 @@ $argv->setHelp("" .
 ->option('port')
     ->describedAs('The port to connect to (default 21)')
 ->option('singleFile')
-    ->describedAs('Whether to run in single file mode (defaults to false)');
+    ->describedAs('Whether to run in single file mode (default false)');
 
 // Do not run any code while in help mode
 if (!empty($argv['k'])){

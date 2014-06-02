@@ -53,29 +53,29 @@ class Operations
    */
   public function init()
   {
-    if (!$this->ftp->SetServer($this->host, $this->port)) {
+    if ($this->ftp->SetServer($this->host, $this->port) === FALSE) {
         $this->ftp->quit();
         throw new RuntimeException("Could not set the server with $this->host:$this->port.\n");
     }
 
-    if (!$this->ftp->connect()) {
+    if ($this->ftp->connect() === FALSE) {
       $this->ftp->quit();
       throw new RuntimeException("Cannot connect to $this->host:$this->port.\n");
     }
 
-    if (!$this->ftp->login($this->username, $this->password)) {
+    if ($this->ftp->login($this->username, $this->password) === FALSE) {
       $this->ftp->quit();
       throw new RuntimeException(
         "Login failed with username:password $this->username:$this->password.\n"
       );
     }
 
-    if (!$this->ftp->SetType(FTP_AUTOASCII)) {
+    if ($this->ftp->SetType(FTP_AUTOASCII) === FALSE) {
       $this->ftp->quit();
       throw new RuntimeException("Could not set type to auto ASCII.\n");
     }
 
-    if (!$this->ftp->Passive(TRUE)) {
+    if ($this->ftp->Passive(TRUE) === FALSE) {
       $this->ftp->quit();
       throw new RuntimeException("Could not change to passive mode.\n");
     }
@@ -93,6 +93,11 @@ class Operations
    */
   public function upload($file, $singleFile = FALSE)
   {
+    if (!file_exists($file))
+    {
+      return array(FALSE, "File Upload Error: " .trim($file). " does not exist\n");
+    }
+
     $type = $singleFile ? 'default' : 'splitfile';
     $dir = "import_{$this->username}_{$type}_config";
 
@@ -110,7 +115,7 @@ class Operations
       }
     } else {
       $message = $this->ftp->last_message();
-      return array(FALSE, "\nFile upload error: $message\n");
+      return array(FALSE, "\nFile Upload Error: $message\n");
     }
   }
 
@@ -130,7 +135,7 @@ class Operations
     }
 
     $listing = $self->ftp->nlist('/complete');
-    if (empty($listing)){
+    if ($listing === FALSE){
       return array(FALSE, "The /complete directory does not exist.\n");
     }
 
@@ -138,9 +143,9 @@ class Operations
 
     $formatted = $self->getDownloadFileName();
     if (array_search($formatted, $listing)){
-      if(!$self->ftp->get("/complete/$formatted", "$location/$formatted")){
+      if($self->ftp->get("/complete/$formatted", "$location/$formatted") === FALSE){
         $message = $self->ftp->last_message();
-        return array(FALSE, "\nFile download error: $message\n");
+        return array(FALSE, "\nFile Download Error: $message\n");
       };
 
       return array(TRUE, "$formatted downloaded to $location.\n");
@@ -170,7 +175,7 @@ class Operations
 
     // We could have been kicked off due to inactivity...
     $self->ftp->quit();
-    if (!$self->init()){
+    if ($self->init() === FALSE){
       return array(FALSE, "Could not reconnect to the server.\n");
     }
 

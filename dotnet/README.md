@@ -52,3 +52,5 @@ Files And Folders
  * **CSharpFTPExample.csproj:** The project file used to load FTP example test code.
  * **OperationsTests.cs:** Tests for the Operations class
  * **packages.config:** XML Specification of the libraries this program uses
+
+* **test.csv:** A small sample records file. 

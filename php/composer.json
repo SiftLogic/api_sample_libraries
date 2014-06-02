@@ -1,5 +1,6 @@
 {
   "require": {
-    "nategood/commando": "*"
+    "nategood/commando": "*",
+    "mikey179/vfsStream": "v1.2.0"
   }
 }
