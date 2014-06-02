@@ -8,8 +8,8 @@
 *.sln.docstates
 
 # Build results
-CSharpFTPExample/bin/Debug/
-CSharpFTPExampleTests/bin/Debug/
+CSharpFTPExample/bin
+CSharpFTPExampleTests/bin
 CSharpFTPExample/obj
 CSharpFTPExampleTests/obj
 
