@@ -1,13 +1,13 @@
 # Example runs that assume you are on a unix machine and you have a specific folder layout and login details.
 .PHONY: run-node run-php
 
-# dotnet e.g.: dotnet\CSharpFTPExample\bin\Release\CSharpFTPExample.exe -f dotnet\test.csv -l C:\Users\IEUser\Desktop -k TestKey -p 733df10f-f362-44a0-8d5b-212e408bb2bc --poll 10 --host bacon
+# dotnet e.g.: dotnet\CSharpFTPExample\bin\Release\CSharpFTPExample.exe -f test.csv -l C:\Users\IEUser\Desktop -u aUsername -p af314cdd-ec92-4bb1-86ba-33e5536bda6f --poll 10
 
 run-node:
-	./node/main.js -f test.csv -l "${HOME}/Desktop/" -k TestKey -p af314cdd-ec92-4bb1-86ba-33e5536bda6f --poll 10
+	./node/main.js -f test.csv -l "${HOME}/Desktop/" -u aUsername -p af314cdd-ec92-4bb1-86ba-33e5536bda6f --poll 10
 
 run-php:
-	./php/main.php -f test.csv -l "${HOME}/Desktop/" -k TestKey -p e261742d-fe2f-4569-95e6-312689d04903 --poll 10
+	./php/main.php -f test.csv -l "${HOME}/Desktop/" -u aUsername -p de301572-3e27-42bc-a6df-02b4ba5ec89c --poll 10
 
 # Standard zip that defines how files are loaded
 .PHONY: zip-node zip-php zip-all

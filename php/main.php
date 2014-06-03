@@ -16,8 +16,8 @@ require_once 'patched_pemftp/ftp_class.php';
 // Define CLI options
 $argv = new Commando\Command();
 $argv->setHelp("" .
-  "Usage: ./main.php -f [file name] -l [download location] -k [key] -p [password]\n" .
-  "Example: ./main.php -f ../test.csv -l /tmp -k TestKey -p e261742d-fe2f-4569-95e6-312689d049 --poll 10\n" .
+  "Usage: ./main.php -f [file name] -l [download location] -u [username] -p [password]\n" .
+  "Example: ./main.php -f ../test.csv -l /tmp -u TestKey -p e261742d-fe2f-4569-95e6-312689d049 --poll 10\n" .
   "         Upload test.csv, process it and download the results to /tmp, poll every 10s"
   ) 
 ->option('f')
@@ -26,9 +26,9 @@ $argv->setHelp("" .
 ->option('l')
     ->require()
     ->describedAs('The location of where the results file should be placed')
-->option('k')
+->option('u')
     ->require()
-    ->describedAs('The key name defined in the manage api keys section')
+    ->describedAs('The username defined in the manage api keys section')
 ->option('p')
     ->require()
     ->describedAs('The password defined in the manage api keys section')
@@ -42,8 +42,8 @@ $argv->setHelp("" .
     ->describedAs('Whether to run in single file mode (default false)');
 
 // Do not run any code while in help mode
-if (!empty($argv['k'])){
-  $operations = new Operations(new Ftp(FALSE), $argv['k'], $argv['p'], 
+if (!empty($argv['u'])){
+  $operations = new Operations(new Ftp(FALSE), $argv['u'], $argv['p'], 
                                $argv['host'], $argv['port'], $argv['poll']);
   $operations->init();
 
