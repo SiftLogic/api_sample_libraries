@@ -22,7 +22,7 @@ Please see README.md in folder patched_pemftp for further License details.
 
 Installation
 ============
-Make sure PHP \>= <b>5.0</b> is installed, then: 
+Make sure PHP \>= <b>5.0</b> is installed and a [composer.phar file](https://github.com/composer/composer#installation--usage), then: 
 <pre>
   <code>
     php composer.phar install
