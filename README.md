@@ -31,3 +31,15 @@ Currently, all files are just compressed into seperate .zip archives (Windows fr
     make zip-all
   </code>
 </pre>
+
+Bug Reporting
+=============
+
+Any bugs should be logged as issues at https://github.com/SiftLogic/api_sample_libraries
+
+Feature Requests
+================
+
+Should you have any feature requests, such as adding support for another language, please open an issue at https://github.com/SiftLogic/api_sample_libraries
+
+
