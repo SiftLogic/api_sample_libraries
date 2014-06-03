@@ -1,15 +1,20 @@
-/**
- * Used by the main file to load and download files. This can be directly required to integrate into
- * your own Node.js application.
- **/
 var JSFtp = require('jsftp');
 
-// The constructor adds opts to the object which are used in init.
-// opts.username: The username to get into the ftp server
-// opts.password: The password to get into the ftp server
-// opts.host: The port to connect to. Defaults to localhost if falsey.
-// opts.port: The port to connect to. Defaults to 21 if falsey.
-// opts.polling: Poll every polling seconds. Defaults to 300 (5 minutes) if falsey.
+/** 
+ * Contains all the operations to upload, poll and download files. The constructor adds connection
+ * and polling options to the class.
+ * @class Operations
+ * @constructor
+ *
+ * @param {Object} opts Options for connecting to the server
+ * @param {string} opts.username The username to get into the ftp server.
+ * @param {string} opts.password The password to get into the ftp server
+ * @param {string=} [opts.host="localhost"] The host to connect to.
+ * @param {string=} [opts.port="21"] The port to connect to. Defaults to 21 if falsey.
+ * @param {string=} [opts.polling="300"] Poll every polling seconds. 300 = 5 minutes.
+ * 
+ * @returns {Operations} Instantiated version of the options class.
+ */
 module.exports = function(opts) {
   'use strict';
   
@@ -26,8 +31,13 @@ module.exports = function(opts) {
     POLL_EVERY: (opts.polling || 300) * 1000// convert seconds to milliseconds
   };
 
-  // Initializes JSFtp in debug mode.
-  self.init = function(callback) {
+  /**
+   * @description
+   * Initializes JSFtp in debug mode with the connection options (username, key, host port).
+   *
+   * @returns {Operations} The same instantiated value that the constructor returns.
+   */
+  self.init = function() {
     self.ftp = new self.JSFtp({
       host: self.host,
       port: self.port,
@@ -39,7 +49,14 @@ module.exports = function(opts) {
     return self;
   };
 
-  // Takes a file name and transforms it to the results formatted version (zip).
+  /**
+   * @description
+   * Retrieves the upload file name and transforms it to the download one. 
+   *
+   * @param {string} filename The filename to convert.
+   *
+   * @returns {string} The current download name of the current upload.
+   */
   self.toDownloadFormat = function(filename) {
     if (!filename){
       return filename;
@@ -50,8 +67,13 @@ module.exports = function(opts) {
                    .replace(new RegExp('.txt$'), '.zip');
   };
 
-  // Calls the callback once the last uploaded file (uploadFileName) has been loaded or there is 
-  // an error. Reconnects for every request to deal with the lost connections.
+  /**
+   * @description
+   * Calls the callback once the last uploaded file (uploadFileName) has been loaded or there is 
+   * an error. Reconnects for every request to deal with the lost connections.
+   *
+   * @param {function(err="")} callback Called when the function completes or there is an error.
+   */
   self.watchUpload = function(callback) {
     // Stop the earlier jsftp_debug listener, it interferes with jsftp's libraries listing operation
     self.ftp.setDebugMode(false);
@@ -81,7 +103,10 @@ module.exports = function(opts) {
     }
   };
 
-  // Recreates a connection.
+  /**
+   * @description
+   * Recreates a connection by using the sent in connection info (username, key, host port).
+   */
   self.reConnect = function() {
     self.ftp.destroy();
 
@@ -93,10 +118,14 @@ module.exports = function(opts) {
     });
   };
 
-  // Uploads the given file, include the full pathname if not in the current directory. Making it
-  // watch debug info until a file is successfully uploaded. singleFile specifies whether to upload
-  // in singleFile mode, by default is false. If there is any errors calls the callback with the
-  // error message.
+  /**
+   * @description
+   * Uploads the given file, Making it watch debug info until the file is successfully uploaded.
+
+   * @param {string} filename The local file to upload.
+   * @param {boolean=}  singleFile Whether to upload in singleFile mode.
+   * @param {function(err="")} callback Called when the function completes or there is an error.
+   */
   self.upload = function(filename, singleFile, callback) {
     self.ftp.on('jsftp_debug', function(eventType, data) {
       if (eventType === 'response' && data){
@@ -122,8 +151,14 @@ module.exports = function(opts) {
     });
   };
 
-  // Polls until the results can be downloaded. Calls the callback once download is complete or on
-  // error.
+  /**
+   * @description
+   * Polls until the results can be downloaded. Uses the last uploaded file (self. uploadFileName) 
+   * to do this.
+   *
+   * @param {string} location The location to download the file to.
+   * @param {function(err="")} callback Called when the function completes or there is an error.
+   */
   self.download = function(location, callback) {
     self.watchUpload(function(err) {
       if (err){
@@ -132,11 +167,16 @@ module.exports = function(opts) {
       location = location.replace(new RegExp('\/$'), '');// Remove trailing slash if present
 
       var filename = self.toDownloadFormat(self.uploadFileName);
-      self.ftp.get('/complete/' + filename, location + '/' + filename, callback);
+      self.ftp.get('/complete/' + filename, location + '/' + filename.split('/').pop(), callback);
     })
   };
 
-  // Closes the ftp connection, should be done after each download. Calls the callback on complete.
+  /**
+   * @description
+   * Closes the ftp connection, should be done after each download
+   *
+   * @param {function(err="")} callback Called when the function completes or there is an error.
+   */
   self.quit = function(callback) {
     self.ftp.raw.quit(callback);
   };

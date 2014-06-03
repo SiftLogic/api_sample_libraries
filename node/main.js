@@ -33,9 +33,9 @@ var Operations = require('./operations');
 var operations = new Operations({
     username: argv.k,
     password: argv.p,
-    polling: argv.poll,
     host: argv.host,
     port: argv.port,
+    polling: argv.poll,
   }).init();
 
 operations.upload(argv.f, argv.singleFile, function(err) {

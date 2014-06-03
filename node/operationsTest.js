@@ -331,13 +331,13 @@ describe('Operations', function() {
     it('should call watchUpload with a function that call ftp get with the file name, destination '+
        'directory and callback', function() {
       var location = 'test/';
-      stub(operations, 'toDownloadFormat').returns('test.zip');
+      stub(operations, 'toDownloadFormat').returns('test/test.zip');
 
       operations.download(location, callback);
 
       operations.watchUpload.args[0][0]();
 
-      calledOnceWith(operations.ftp.get, '/complete/test.zip', 'test/test.zip', callback);
+      calledOnceWith(operations.ftp.get, '/complete/test/test.zip', 'test/test.zip', callback);
     });
   });
 

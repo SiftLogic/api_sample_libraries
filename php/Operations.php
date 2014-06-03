@@ -122,7 +122,7 @@ class Operations
  /**
    * Polls every pollEvery seconds until the last uploaded file can be downloaded. Then downloads.
    *
-   * @param (location) The absolute location to download the file to.
+   * @param (location) The location to download the file to.
    * @param (self) A new version of this class to use. Defaults to $this. (For testing purposes)
    *
    * @return An array [<download succeeded>, <message>].
@@ -159,7 +159,7 @@ class Operations
    *
    * @param (time) The time in seconds to sleep for.
    * @param (file) The filename to download. Just need the filename, no path.
-   * @param (location) The absolute location to download the file to.
+   * @param (location) The location to download the file to.
    * @param (self) A new version of this class to use. Defaults to $this. (For testing purposes)
    *
    * @return Result of running downloads again.
