@@ -10,7 +10,17 @@ Each implementation is contained within an evironment folder which describes the
 * Python
 * Ruby
 
-*test_data.csv* is an example file that can be run for each test. Specifically, the make run tests in this folder use this file.
+**test.csv:** Is an example file that can be run for each test. Specifically, the make run-\<environment\> tests in this folder use this file.
+**test_bad.csv:** Is an example file that causes a bad data error to be returned from processing.
+
+Licenses
+========
+
+Most of the 3rd party libraries are installed via various package manager. Their licenses can be checked in the created package manager folder. More details of this in each languages folder. Included 3rd Party library license info, please see:
+
+**PemFTP (PHP):** https://github.com/SiftLogic/api_sample_libraries/tree/master/patched_pemftp/README.md
+**Command Line Parser Library (.Net):** http://commandline.codeplex.com/license
+**Moq (.Net):** https://github.com/Moq/moq/blob/master/LICENSE
 
 Building Batraquomancy
 ======================
@@ -21,4 +31,3 @@ Currently, all files are just compressed into seperate .zip archives (Windows fr
     make zip-all
   </code>
 </pre>
-
