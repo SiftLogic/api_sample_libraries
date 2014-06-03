@@ -11,6 +11,15 @@ The CLI is described in more detail with <code>./main.php --help</code>
 
 It is recommended to require the Operations file and use the methods in there to customize your process. The methods are described in file. If you want to cut down on code, this file only requires the files in patched_pemftp.
 
+Licensing
+=========
+
+Copyright 2014 SiftLogic LLC
+
+SiftLogic LLC hereby grants to SiftLogic Customers a revocable, non-exclusive, non-transferable, limited license for use of SiftLogic sample code for the sole purpose of integration with the SiftLogic platform.
+
+Please see README.md in folder patched_pemftp for further License details.
+
 Installation
 ============
 Make sure PHP \>= <b>5.0</b> is installed, then: 

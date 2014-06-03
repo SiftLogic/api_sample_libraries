@@ -12,6 +12,13 @@ The CLI is described in more detail with <code>./main.js</code>
 
 It is recommended to require the operations file and use the functions in there to customize your process. The functions are described in file. If you want to cut down on code, this file only requires jsftp as a node module.
 
+Licensing
+=========
+
+Copyright 2014 SiftLogic LLC
+
+SiftLogic LLC hereby grants to SiftLogic Customers a revocable, non-exclusive, non-transferable, limited license for use of SiftLogic sample code for the sole purpose of integration with the SiftLogic platform.
+
 Installation
 ============
 Make sure Node.js \>= <b>0.9.12</b> is installed as well as [NPM](https://www.npmjs.org/), then: 

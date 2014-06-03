@@ -12,6 +12,13 @@ The CLI is described in more detail with <code>CSharpFTPExample\bin\Release\CSha
 It is recommended to include the Operations file and use the methods in there to customize your process. The methods are described in file. If you want to cut down on code, this only requires the 
 [CommandLineParser](https://commandline.codeplex.com/) library.
 
+Licensing
+=========
+
+Copyright 2014 SiftLogic LLC
+
+SiftLogic LLC hereby grants to SiftLogic Customers a revocable, non-exclusive, non-transferable, limited license for use of SiftLogic sample code for the sole purpose of integration with the SiftLogic platform.
+
 Quick Start
 ===========
 
