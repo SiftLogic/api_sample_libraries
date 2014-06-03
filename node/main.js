@@ -14,7 +14,7 @@ var argv = require('yargs')
   .usage('Usage: $0 -f [file name] -l [download location] -u [username] -p [password]')
   .example('$0 -f ../test.csv -l /tmp -u TestKey -p e261742d-fe2f-4569-95e6-312689d049 --poll 10', 
            'Upload test.csv, process it and download the results to /tmp, poll every 10s')
-  .demand(['f', 'l', 'u', 'p'])// http://www.urbandictionary.com/define.php?term=Flup
+  .demand(['f', 'l', 'u', 'p'])
   .describe({
     f: 'The file path of the upload file',
     l: 'The location of where the results file should be placed',
