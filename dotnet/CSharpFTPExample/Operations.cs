@@ -68,6 +68,7 @@ namespace CSharpFTPExample
             try
             {
                 var fileName = new FileInfo(file).Name;
+                Console.WriteLine(fileName);
                 ftp.UploadFile("ftp://" + host + ':' + port + directory + fileName, file);
 
                 var status = GetStatusDescription(ftp);

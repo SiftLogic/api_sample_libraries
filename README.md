@@ -16,7 +16,7 @@ Each implementation is contained within an evironment folder which describes the
 Licenses
 ========
 
-Most of the 3rd party libraries are installed via various package manager. Their licenses can be checked in the created package manager folder. More details of this in each languages folder. Included 3rd Party library license info, please see:
+Most of the 3rd party libraries are installed via various package managers. Their licenses can be checked in the created package manager folder. For more details of this, look in each languages folder. 3rd Party library license info has been included though, please see:
 
 * **PemFTP (PHP):** https://github.com/SiftLogic/api_sample_libraries/tree/master/patched_pemftp/README.md
 * **Command Line Parser Library (.Net):** http://commandline.codeplex.com/license

@@ -1,7 +1,7 @@
 # Example runs that assume you are on a unix machine and you have a specific folder layout and login details.
 .PHONY: run-node run-php
 
-# dotnet e.g.: dotnet\CSharpFTPExample\bin\Release\CSharpFTPExample.exe -f test.csv -l C:\Users\IEUser\Desktop -u aUsername -p af314cdd-ec92-4bb1-86ba-33e5536bda6f --poll 10
+# dotnet e.g.: dotnet\CSharpFTPExample\bin\Release\CSharpFTPExample.exe -f test.csv -l C:\Users\aUser\Desktop -u aUsername -p af314cdd-ec92-4bb1-86ba-33e5536bda6f --poll 10
 
 run-node:
 	./node/main.js -f test.csv -l "${HOME}/Desktop/" -u aUsername -p af314cdd-ec92-4bb1-86ba-33e5536bda6f --poll 10
