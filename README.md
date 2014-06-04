@@ -13,6 +13,11 @@ Each implementation is contained within an evironment folder which describes the
 **test.csv:** Is an example file that can be run for each test. Specifically, the make run-\<environment\> tests in this folder use this file.<br/>
 **test_bad.csv:** Is an example file that causes a bad data error to be returned from processing.
 
+**All new changes are being added in seperate repositories for ease of use and later package manager integration:**
+ * **.Net:** https://github.com/SiftLogic/sift_bulk_api_dotnet
+ * **PHP:** https://github.com/SiftLogic/sift_bulk_api_php
+ * **Node.js:** https://github.com/SiftLogic/sift_bulk_api_nodejs
+
 Licenses
 ========
 
